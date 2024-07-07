@@ -1,0 +1,66 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans', sans-serif;
+    font-size: 16px;
+    color: #333;
+    background-color: #f4f4f4;
+}
+
+.board {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+}
+
+.pieces {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    /* margin: auto; */
+}
+
+.square {
+    width: 100px;
+    height: 100px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    color: #333;
+}
+
+.black {
+    background-color: #333;
+}
+
+.white {
+    background-color: #fff;
+}
+
+.piece {
+    font-weight: bold;
+}
+
+.piece-black {
+    color: black;
+    text-shadow: 
+        2px -2px #aaa,
+        -2px 2px #aaa,
+        -2px -2px #aaa,
+        2px 2px #aaa;
+}
+
+.piece-white {
+    color: white;
+    text-shadow: 
+        2px -2px #666,
+        -2px 2px #666,
+        -2px -2px #666,
+        2px 2px #666;
+}
