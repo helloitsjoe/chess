@@ -31,10 +31,58 @@ const BLACK = "#040404";
 const createPawn = (color = WHITE) => ({
   id: "pawn",
   image: "P",
-  moves: [],
   color,
-  onclick: () => {
-    console.log("Clicked the pawn!");
+  getMoves({ pieces, x, y }) {
+    const moves = [];
+
+    // If a piece is not directly in front of the pawn, it can move
+    // If the pawn is not in its starting position, it can move one square
+    if (pieces[y + 1][x] == null) {
+      moves.push({ x, y: y + 1 });
+    }
+    // If the pawn is in its starting position, it can move two squares
+    if (y === 1 && pieces[y + 2][x] == null) {
+      moves.push({ x, y: y + 2 });
+    }
+    // If a piece is diagonally in front of the pawn, it can take it
+    if (pieces[y + 1][x + 1] != null) {
+      moves.push({ x: x + 1, y: y + 1 });
+    }
+    if (pieces[y + 1][x - 1] != null) {
+      moves.push({ x: x - 1, y: y + 1 });
+    }
+
+    return moves;
+  },
+  makeOnClick({ pieces, x, y }) {
+    return () => {
+      console.log("x, y", x, y);
+      for (const move of this.getMoves({ pieces, x, y })) {
+        const newX = move.x;
+        const newY = move.y;
+        if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
+          console.log("newX", newX);
+          console.log("newY", newY);
+          // console.log("pieces[newY][newX]", pieces[newY][newX]);
+          if (pieces[newY][newX] === null) {
+            console.log("empty square");
+          } else {
+            console.log("take piece");
+          }
+          pieces[newY][newX] = { image: "." };
+        }
+      }
+      // for (let i = 0; i < BOARD_SIZE; i++) {
+      //   for (let j = 0; j < BOARD_SIZE; j++) {
+      //     if (i === 1 && j === 1) {
+      //       pieces[i][j] = createPawn();
+      //     } else {
+      //       pieces[i][j] = null;
+      //     }
+      //   }
+      // }
+      render(pieces);
+    };
   },
 });
 const createRook = (color = WHITE) => ({
@@ -69,7 +117,6 @@ const createQueen = (color = WHITE) => ({
 });
 
 const BOARD_SIZE = 8;
-const SQUARE_SIZE = 50;
 
 /** @type Board */
 const board = Array.from({ length: BOARD_SIZE }, () =>
@@ -99,36 +146,39 @@ function createBoard(board) {
 }
 
 function createPieces(pieces) {
-  const piecesDiv = document.createElement("div");
-  piecesDiv.classList.add("pieces");
+  const piecesContainer = document.createElement("div");
+  piecesContainer.classList.add("pieces");
   pieces.forEach((row, y) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.classList.add("row");
+    const rowContainer = document.createElement("div");
+    rowContainer.classList.add("row");
     row.forEach((sq, x) => {
-      const pieceDiv = document.createElement("div");
-      pieceDiv.classList.add("square", "piece");
+      const pieceEl = document.createElement("div");
+      pieceEl.classList.add("square", "piece");
       if (sq) {
-        pieceDiv.textContent = sq.image;
+        pieceEl.textContent = sq.image;
         if (sq.color === BLACK) {
-          pieceDiv.classList.add("piece-black");
+          pieceEl.classList.add("piece-black");
         } else {
-          pieceDiv.classList.add("piece-white");
+          pieceEl.classList.add("piece-white");
         }
 
-        if (sq.onclick) {
-          pieceDiv.onclick = sq.onclick;
+        if (sq.makeOnClick) {
+          pieceEl.onclick = sq.makeOnClick({ pieces, x, y });
         }
       }
-      rowDiv.appendChild(pieceDiv);
+      rowContainer.appendChild(pieceEl);
     });
-    piecesDiv.appendChild(rowDiv);
+    piecesContainer.appendChild(rowContainer);
   });
 
-  return piecesDiv;
+  return piecesContainer;
 }
 
-function render() {
+function render(pieces) {
   // Loop over pieces and render them in their coordinates
+  const piecesContainer = document.querySelector(".pieces");
+  piecesContainer.innerHTML = "";
+  piecesContainer.appendChild(createPieces(pieces));
 }
 
 const pieces = [
@@ -177,6 +227,8 @@ const pieces = [
     createRook(BLACK),
   ],
 ];
+
+// Add images
 
 // When a piece is clicked, highlight its possible moves
 // When a piece is dragged, highlight its possible moves
