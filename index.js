@@ -27,7 +27,15 @@
 
 const WHITE = "#f5f5f5";
 const BLACK = "#040404";
+const BOARD_SIZE = 8;
 
+/**
+ * @param {Piece} piece
+ * @returns {boolean}
+ */
+const isEmpty = (piece = {}) => piece.type === "empty";
+
+const createEmpty = () => ({ type: "empty" });
 const createPawn = (color = WHITE) => ({
   id: "pawn",
   image: "P",
@@ -37,52 +45,37 @@ const createPawn = (color = WHITE) => ({
 
     // If a piece is not directly in front of the pawn, it can move
     // If the pawn is not in its starting position, it can move one square
-    if (pieces[y + 1][x] == null) {
+    if (isEmpty(pieces[y + 1][x])) {
       moves.push({ x, y: y + 1 });
-    }
-    // If the pawn is in its starting position, it can move two squares
-    if (y === 1 && pieces[y + 2][x] == null) {
-      moves.push({ x, y: y + 2 });
+      // If the pawn is in its starting position, it can move two squares
+      if (y === 1 && isEmpty(pieces[y + 2][x])) {
+        moves.push({ x, y: y + 2 });
+      }
     }
     // If a piece is diagonally in front of the pawn, it can take it
-    if (pieces[y + 1][x + 1] != null) {
+    if (!isEmpty(pieces[y + 1][x + 1])) {
       moves.push({ x: x + 1, y: y + 1 });
     }
-    if (pieces[y + 1][x - 1] != null) {
+    if (!isEmpty(pieces[y + 1][x - 1])) {
       moves.push({ x: x - 1, y: y + 1 });
     }
 
     return moves;
   },
-  makeOnClick({ pieces, x, y }) {
-    return () => {
-      console.log("x, y", x, y);
-      for (const move of this.getMoves({ pieces, x, y })) {
-        const newX = move.x;
-        const newY = move.y;
-        if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
-          console.log("newX", newX);
-          console.log("newY", newY);
-          // console.log("pieces[newY][newX]", pieces[newY][newX]);
-          if (pieces[newY][newX] === null) {
-            console.log("empty square");
-          } else {
-            console.log("take piece");
-          }
-          pieces[newY][newX] = { image: "." };
+  onClick({ pieces, x, y }) {
+    clearMoves(pieces);
+    const moveOptions = this.getMoves({ pieces, x, y });
+    for (const { x: newX, y: newY } of moveOptions) {
+      if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
+        if (isEmpty(pieces[newY][newX])) {
+          console.log("empty square");
+        } else {
+          console.log("take piece");
         }
+        pieces[newY][newX].showMove = true;
       }
-      // for (let i = 0; i < BOARD_SIZE; i++) {
-      //   for (let j = 0; j < BOARD_SIZE; j++) {
-      //     if (i === 1 && j === 1) {
-      //       pieces[i][j] = createPawn();
-      //     } else {
-      //       pieces[i][j] = null;
-      //     }
-      //   }
-      // }
-      render(pieces);
-    };
+    }
+    render(pieces);
   },
 });
 const createRook = (color = WHITE) => ({
@@ -90,38 +83,36 @@ const createRook = (color = WHITE) => ({
   image: "R",
   moves: [],
   color,
+  onClick() {},
 });
 const createKnight = (color = WHITE) => ({
   id: "knight",
   image: "H",
   moves: [],
   color,
+  onClick() {},
 });
 const createBishop = (color = WHITE) => ({
   id: "bishop",
   image: "B",
   moves: [],
   color,
+  onClick() {},
 });
 const createKing = (color = WHITE) => ({
   id: "king",
   image: "K",
   moves: [],
   color,
+  onClick() {},
 });
 const createQueen = (color = WHITE) => ({
   id: "queen",
   image: "Q",
   moves: [],
   color,
+  onClick() {},
 });
-
-const BOARD_SIZE = 8;
-
-/** @type Board */
-const board = Array.from({ length: BOARD_SIZE }, () =>
-  Array.from({ length: BOARD_SIZE }, () => null),
-);
 
 function createBoard(board) {
   const boardDiv = document.createElement("div");
@@ -145,7 +136,21 @@ function createBoard(board) {
   return boardDiv;
 }
 
-function createPieces(pieces) {
+function clearMoves(pieces) {
+  for (let i = 0; i < pieces.length; i++) {
+    const row = pieces[i];
+    for (let j = 0; j < row.length; j++) {
+      // TODO: Bring back the piece that was there
+      // if (!isEmpty(pieces[i][j])) {
+      //   if (pieces[i][j].showMove) {
+      pieces[i][j].showMove = false;
+      // }
+      // }
+    }
+  }
+}
+
+function renderPieces(pieces) {
   const piecesContainer = document.createElement("div");
   piecesContainer.classList.add("pieces");
   pieces.forEach((row, y) => {
@@ -162,9 +167,16 @@ function createPieces(pieces) {
           pieceEl.classList.add("piece-white");
         }
 
-        if (sq.makeOnClick) {
-          pieceEl.onclick = sq.makeOnClick({ pieces, x, y });
+        if (sq.showMove) {
+          pieceEl.classList.add("show-move");
+        } else {
+          pieceEl.classList.remove("show-move");
         }
+
+        pieceEl.onclick = () => {
+          console.log("pieceEl clicked");
+          sq.onClick({ pieces, x, y });
+        };
       }
       rowContainer.appendChild(pieceEl);
     });
@@ -174,12 +186,29 @@ function createPieces(pieces) {
   return piecesContainer;
 }
 
-function render(pieces) {
+/**
+ * @param {Array<Array<Piece | null>>} pieces
+ * @param {Array<Array<Move | null>>} moves
+ */
+function render(pieces /* , moves */) {
   // Loop over pieces and render them in their coordinates
-  const piecesContainer = document.querySelector(".pieces");
-  piecesContainer.innerHTML = "";
-  piecesContainer.appendChild(createPieces(pieces));
+  const piecesRoot = document.getElementById("pieces-root");
+  // const movesRoot = document.getElementById("moves-root");
+  piecesRoot.innerHTML = "";
+  // movesRoot.innerHTML = "";
+  piecesRoot.appendChild(renderPieces(pieces));
+  // TODO: Why are the moves not showing?
+  // movesRoot.appendChild(createMoves(moves));
 }
+
+/** @type Board */
+const board = Array.from({ length: BOARD_SIZE }, () =>
+  Array.from({ length: BOARD_SIZE }, () => null),
+);
+
+// const moves = Array.from({ length: BOARD_SIZE }, () =>
+//   Array.from({ length: BOARD_SIZE }, () => ({type: 'empty'})),
+// );
 
 const pieces = [
   [
@@ -202,10 +231,10 @@ const pieces = [
     createPawn(),
     createPawn(),
   ],
-  Array.from({ length: BOARD_SIZE }, () => null),
-  Array.from({ length: BOARD_SIZE }, () => null),
-  Array.from({ length: BOARD_SIZE }, () => null),
-  Array.from({ length: BOARD_SIZE }, () => null),
+  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
   [
     createPawn(BLACK),
     createPawn(BLACK),
@@ -228,6 +257,8 @@ const pieces = [
   ],
 ];
 
+pieces[2][3] = createPawn(BLACK);
+
 // Add images
 
 // When a piece is clicked, highlight its possible moves
@@ -237,8 +268,9 @@ const pieces = [
 
 // Take another piece when you land on it
 
-const whiteTaken = {};
-const blackTaken = {};
+// const whiteTaken = {};
+// const blackTaken = {};
 
-document.getElementById("root").appendChild(createBoard(board));
-document.getElementById("root").appendChild(createPieces(pieces));
+document.getElementById("board-root").appendChild(createBoard(board));
+
+render(pieces);
