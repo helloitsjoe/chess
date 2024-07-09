@@ -33,6 +33,28 @@ const BOARD_SIZE = 8;
  * @param {Piece} piece
  * @returns {boolean}
  */
+
+const files = ["king", "queen", "rook", "bishop", "knight", "pawn"];
+
+const whiteSvgs = await Promise.all(
+  files.map((file) =>
+    fetch(`./assets/white-${file}.svg`).then((res) => res.text()),
+  ),
+);
+
+const blackSvgs = await Promise.all(
+  files.map((file) =>
+    fetch(`./assets/black-${file}.svg`).then((res) => res.text()),
+  ),
+);
+
+const sprites = { [WHITE]: {}, [BLACK]: {} };
+
+for (let i = 0; i < files.length; i++) {
+  sprites[WHITE][files[i]] = whiteSvgs[i];
+  sprites[BLACK][files[i]] = blackSvgs[i];
+}
+
 const isEmpty = (piece) => piece.type === "empty";
 
 function makeGetRookMoves(color) {
@@ -162,30 +184,34 @@ const createEmpty = () => ({ type: "empty" });
 const createPawn = (color = WHITE) => ({
   id: "pawn",
   image: "P",
+  svg: "♙",
   color,
   getMoves({ pieces, x, y }) {
-    // const factor = color === WHITE ? 1 : -1;
+    const direction = color === WHITE ? 1 : -1;
+    const startY = color === WHITE ? 1 : 6;
+    const newY = y + 1 * direction;
+    const newYStart = y + 2 * direction;
 
     const moves = [];
 
     // If a piece is not directly in front of the pawn, it can move
     // If the pawn is not in its starting position, it can move one square
-    if (isEmpty(pieces[y + 1][x])) {
-      moves.push({ x, y: y + 1 });
+    if (isEmpty(pieces[newY][x])) {
+      moves.push({ x, y: newY });
       // If the pawn is in its starting position, it can move two squares
-      if (y === 1 && isEmpty(pieces[y + 2][x])) {
-        moves.push({ x, y: y + 2 });
+      if (y === startY && isEmpty(pieces[newYStart][x])) {
+        moves.push({ x, y: newYStart });
       }
     }
     // If a piece is diagonally in front of the pawn, it can take it
     // as long as the color is different
-    const leftPiece = pieces[y + 1][x + 1];
-    const rightPiece = pieces[y + 1][x - 1];
+    const leftPiece = pieces[newY][x + 1];
+    const rightPiece = pieces[newY][x - 1];
     if (leftPiece && !isEmpty(leftPiece) && leftPiece.color !== color) {
-      moves.push({ x: x + 1, y: y + 1 });
+      moves.push({ x: x + 1, y: newY });
     }
     if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
-      moves.push({ x: x - 1, y: y + 1 });
+      moves.push({ x: x - 1, y: newY });
     }
 
     return moves;
@@ -194,12 +220,14 @@ const createPawn = (color = WHITE) => ({
 const createRook = (color = WHITE) => ({
   id: "rook",
   image: "R",
+  svg: "♖",
   color,
   getMoves: makeGetRookMoves(color),
 });
 const createKnight = (color = WHITE) => ({
   id: "knight",
   image: "H",
+  svg: "♘",
   color,
   getMoves({ pieces, x, y }) {
     const moves = [];
@@ -232,23 +260,25 @@ const createKnight = (color = WHITE) => ({
 const createBishop = (color = WHITE) => ({
   id: "bishop",
   image: "B",
+  svg: "♗",
   getMoves: makeGetBishopMoves(color),
   color,
 });
 const createKing = (color = WHITE) => ({
   id: "king",
   image: "K",
+  svg: "♔",
   getMoves({ pieces, x, y }) {
     const moves = [];
 
     const allMoves = [
-      { x: x + 1, y },
-      { x: x + 1, y: y + 1 },
       { x, y: y + 1 },
-      { x: x - 1, y: y + 1 },
-      { x: x - 1, y },
-      { x: x - 1, y: y - 1 },
       { x, y: y - 1 },
+      { x: x + 1, y },
+      { x: x - 1, y },
+      { x: x + 1, y: y + 1 },
+      { x: x - 1, y: y + 1 },
+      { x: x - 1, y: y - 1 },
       { x: x + 1, y: y - 1 },
     ];
 
@@ -271,6 +301,7 @@ const createKing = (color = WHITE) => ({
 const createQueen = (color = WHITE) => ({
   id: "queen",
   image: "Q",
+  svg: "♕",
   getMoves({ pieces, x, y }) {
     return [
       ...makeGetBishopMoves(color)({ pieces, x, y }),
@@ -290,7 +321,7 @@ function createBoard(board) {
       const squareDiv = document.createElement("div");
       squareDiv.classList.add("square");
       if ((x % 2 && y % 2 === 0) || (x % 2 === 0 && y % 2)) {
-        squareDiv.classList.add("black");
+        squareDiv.classList.add("dark");
       } else {
         squareDiv.classList.add("white");
       }
@@ -321,12 +352,22 @@ function renderPieces(pieces) {
       const pieceEl = document.createElement("div");
       pieceEl.classList.add("square", "piece");
       if (sq) {
-        pieceEl.textContent = sq.image;
-        if (sq.color === BLACK) {
-          pieceEl.classList.add("piece-black");
-        } else {
-          pieceEl.classList.add("piece-white");
+        // const sprite = document.createElement("svg");
+        // sprite.innerHTML = sq.sprite;
+        // pieceEl.appendChild(sprite);
+
+        if (sq.type !== "empty") {
+          console.log(sq.color, sq.id, sprites[sq.color][sq.id]);
+          pieceEl.innerHTML = sprites[sq.color][sq.id];
         }
+
+        // pieceEl.textContent = sq.svg || sq.image;
+
+        // if (sq.color === BLACK) {
+        //   pieceEl.classList.add("piece-black");
+        // } else {
+        //   pieceEl.classList.add("piece-white");
+        // }
 
         if (sq.showMove) {
           pieceEl.classList.add("show-move");
@@ -428,9 +469,9 @@ const pieces = [
 ];
 
 pieces[5][4] = createKing(WHITE);
-pieces[3][3] = createQueen(WHITE);
-pieces[3][6] = createRook(WHITE);
-pieces[3][5] = createBishop(WHITE);
+pieces[3][3] = createQueen(BLACK);
+pieces[3][6] = createRook(BLACK);
+pieces[3][5] = createBishop(BLACK);
 
 // Add images
 
