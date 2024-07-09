@@ -9,6 +9,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "prettier": {
+    "singleQuote": true
+  },
   "dependencies": {
     "typescript": "^5.5.3"
   },

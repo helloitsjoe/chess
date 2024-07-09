@@ -15,16 +15,19 @@
  * @typedef Board {Array<Piece | null>}
  */
 
-const WHITE = "#f5f5f5";
-const BLACK = "#040404";
-const BOARD_SIZE = 8;
-
 /**
  * @param {Piece} piece
  * @returns {boolean}
  */
 
-const files = ["king", "queen", "rook", "bishop", "knight", "pawn"];
+const WHITE = '#f5f5f5';
+const BLACK = '#040404';
+const BOARD_SIZE = 8;
+
+const whiteTaken = {};
+const blackTaken = {};
+
+const files = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
 
 const whiteSvgs = await Promise.all(
   files.map((file) =>
@@ -45,7 +48,7 @@ for (let i = 0; i < files.length; i++) {
   sprites[BLACK][files[i]] = blackSvgs[i];
 }
 
-const isEmpty = (piece) => piece.id === "empty";
+const isEmpty = (piece) => piece.id === 'empty';
 
 function makeGetRookMoves(color) {
   return ({ pieces, x, y }) => {
@@ -170,9 +173,9 @@ function makeGetBishopMoves(color) {
   };
 }
 
-const createEmpty = () => ({ id: "empty" });
+const createEmpty = () => ({ id: 'empty' });
 const createPawn = (color = WHITE) => ({
-  id: "pawn",
+  id: 'pawn',
   color,
   getMoves({ pieces, x, y }) {
     const direction = color === WHITE ? 1 : -1;
@@ -206,12 +209,12 @@ const createPawn = (color = WHITE) => ({
   },
 });
 const createRook = (color = WHITE) => ({
-  id: "rook",
+  id: 'rook',
   color,
   getMoves: makeGetRookMoves(color),
 });
 const createKnight = (color = WHITE) => ({
-  id: "knight",
+  id: 'knight',
   color,
   getMoves({ pieces, x, y }) {
     const moves = [];
@@ -242,12 +245,12 @@ const createKnight = (color = WHITE) => ({
   },
 });
 const createBishop = (color = WHITE) => ({
-  id: "bishop",
+  id: 'bishop',
   color,
   getMoves: makeGetBishopMoves(color),
 });
 const createKing = (color = WHITE) => ({
-  id: "king",
+  id: 'king',
   color,
   getMoves({ pieces, x, y }) {
     const moves = [];
@@ -279,7 +282,7 @@ const createKing = (color = WHITE) => ({
   },
 });
 const createQueen = (color = WHITE) => ({
-  id: "queen",
+  id: 'queen',
   color,
   getMoves({ pieces, x, y }) {
     return [
@@ -290,18 +293,18 @@ const createQueen = (color = WHITE) => ({
 });
 
 function createBoard(board) {
-  const boardDiv = document.createElement("div");
-  boardDiv.classList.add("board");
+  const boardDiv = document.createElement('div');
+  boardDiv.classList.add('board');
   board.forEach((row, y) => {
-    const rowDiv = document.createElement("div");
-    rowDiv.classList.add("row");
+    const rowDiv = document.createElement('div');
+    rowDiv.classList.add('row');
     row.forEach((sq, x) => {
-      const squareDiv = document.createElement("div");
-      squareDiv.classList.add("square");
+      const squareDiv = document.createElement('div');
+      squareDiv.classList.add('square');
       if ((x % 2 && y % 2 === 0) || (x % 2 === 0 && y % 2)) {
-        squareDiv.classList.add("dark");
+        squareDiv.classList.add('dark');
       } else {
-        squareDiv.classList.add("white");
+        squareDiv.classList.add('white');
       }
       rowDiv.appendChild(squareDiv);
     });
@@ -321,23 +324,23 @@ function clearMoves(pieces) {
 }
 
 function renderPieces(pieces) {
-  const piecesContainer = document.createElement("div");
-  piecesContainer.classList.add("pieces");
+  const piecesContainer = document.createElement('div');
+  piecesContainer.classList.add('pieces');
   pieces.forEach((row, y) => {
-    const rowContainer = document.createElement("div");
-    rowContainer.classList.add("row");
+    const rowContainer = document.createElement('div');
+    rowContainer.classList.add('row');
     row.forEach((sq, x) => {
-      const pieceEl = document.createElement("div");
-      pieceEl.classList.add("square", "piece");
+      const pieceEl = document.createElement('div');
+      pieceEl.classList.add('square', 'piece');
       if (sq) {
-        if (sq.id !== "empty") {
+        if (sq.id !== 'empty') {
           pieceEl.innerHTML = sprites[sq.color][sq.id];
         }
 
         if (sq.pendingMove) {
-          pieceEl.classList.add("show-move");
+          pieceEl.classList.add('show-move');
         } else {
-          pieceEl.classList.remove("show-move");
+          pieceEl.classList.remove('show-move');
         }
 
         // TODO: Don't replace this click handler on every render
@@ -381,8 +384,8 @@ function renderPieces(pieces) {
  */
 function render(pieces) {
   // Loop over pieces and render them in their coordinates
-  const piecesRoot = document.getElementById("pieces-root");
-  piecesRoot.innerHTML = "";
+  const piecesRoot = document.getElementById('pieces-root');
+  piecesRoot.innerHTML = '';
   piecesRoot.appendChild(renderPieces(pieces));
 }
 
@@ -450,9 +453,6 @@ const pieces = [
 
 // Only allow one side to move at a time
 
-// const whiteTaken = {};
-// const blackTaken = {};
-
-document.getElementById("board-root").appendChild(createBoard(board));
+document.getElementById('board-root').appendChild(createBoard(board));
 
 render(pieces);
