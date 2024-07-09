@@ -33,7 +33,130 @@ const BOARD_SIZE = 8;
  * @param {Piece} piece
  * @returns {boolean}
  */
-const isEmpty = (piece = {}) => piece.type === "empty";
+const isEmpty = (piece) => piece.type === "empty";
+
+function makeGetRookMoves(color) {
+  return ({ pieces, x, y }) => {
+    const moves = [];
+
+    for (let i = x + 1; i < BOARD_SIZE; i++) {
+      if (isEmpty(pieces[y][i])) {
+        moves.push({ x: i, y });
+      } else {
+        if (pieces[y][i].color !== color) {
+          moves.push({ x: i, y });
+        }
+        break;
+      }
+    }
+
+    for (let i = x - 1; i >= 0; i--) {
+      if (isEmpty(pieces[y][i])) {
+        moves.push({ x: i, y });
+      } else {
+        if (pieces[y][i].color !== color) {
+          moves.push({ x: i, y });
+        }
+        break;
+      }
+    }
+
+    for (let i = y + 1; i < BOARD_SIZE; i++) {
+      if (isEmpty(pieces[i][x])) {
+        moves.push({ x, y: i });
+      } else {
+        if (pieces[i][x].color !== color) {
+          moves.push({ x, y: i });
+        }
+        break;
+      }
+    }
+
+    for (let i = y - 1; i >= 0; i--) {
+      if (isEmpty(pieces[i][x])) {
+        moves.push({ x, y: i });
+      } else {
+        if (pieces[i][x].color !== color) {
+          moves.push({ x, y: i });
+        }
+        break;
+      }
+    }
+
+    return moves;
+  };
+}
+
+function makeGetBishopMoves(color) {
+  return ({ pieces, x, y }) => {
+    const moves = [];
+
+    // TODO: Try to DRY this up
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const newY = y + i;
+      const newX = x + i;
+
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+        break;
+      }
+    }
+
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const newY = y - i;
+      const newX = x - i;
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+        break;
+      }
+    }
+
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const newY = y - i;
+      const newX = x + i;
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+        break;
+      }
+    }
+
+    for (let i = 1; i < BOARD_SIZE; i++) {
+      const newY = y + i;
+      const newX = x - i;
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+        break;
+      }
+    }
+
+    return moves;
+  };
+}
 
 const createEmpty = () => ({ type: "empty" });
 const createPawn = (color = WHITE) => ({
@@ -41,6 +164,8 @@ const createPawn = (color = WHITE) => ({
   image: "P",
   color,
   getMoves({ pieces, x, y }) {
+    // const factor = color === WHITE ? 1 : -1;
+
     const moves = [];
 
     // If a piece is not directly in front of the pawn, it can move
@@ -53,65 +178,106 @@ const createPawn = (color = WHITE) => ({
       }
     }
     // If a piece is diagonally in front of the pawn, it can take it
-    if (!isEmpty(pieces[y + 1][x + 1])) {
+    // as long as the color is different
+    const leftPiece = pieces[y + 1][x + 1];
+    const rightPiece = pieces[y + 1][x - 1];
+    if (leftPiece && !isEmpty(leftPiece) && leftPiece.color !== color) {
       moves.push({ x: x + 1, y: y + 1 });
     }
-    if (!isEmpty(pieces[y + 1][x - 1])) {
+    if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
       moves.push({ x: x - 1, y: y + 1 });
     }
 
     return moves;
   },
-  onClick({ pieces, x, y }) {
-    clearMoves(pieces);
-    const moveOptions = this.getMoves({ pieces, x, y });
-    for (const { x: newX, y: newY } of moveOptions) {
-      if (newX >= 0 && newX < BOARD_SIZE && newY >= 0 && newY < BOARD_SIZE) {
-        if (isEmpty(pieces[newY][newX])) {
-          console.log("empty square");
-        } else {
-          console.log("take piece");
-        }
-        pieces[newY][newX].showMove = true;
-      }
-    }
-    render(pieces);
-  },
 });
 const createRook = (color = WHITE) => ({
   id: "rook",
   image: "R",
-  moves: [],
   color,
-  onClick() {},
+  getMoves: makeGetRookMoves(color),
 });
 const createKnight = (color = WHITE) => ({
   id: "knight",
   image: "H",
-  moves: [],
   color,
-  onClick() {},
+  getMoves({ pieces, x, y }) {
+    const moves = [];
+    const allMoves = [
+      { x: x + 1, y: y + 2 },
+      { x: x + 2, y: y + 1 },
+      { x: x + 2, y: y - 1 },
+      { x: x + 1, y: y - 2 },
+      { x: x - 1, y: y - 2 },
+      { x: x - 2, y: y - 1 },
+      { x: x - 2, y: y + 1 },
+      { x: x - 1, y: y + 2 },
+    ];
+
+    for (const { x: newX, y: newY } of allMoves) {
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+      }
+    }
+
+    return moves;
+  },
 });
 const createBishop = (color = WHITE) => ({
   id: "bishop",
   image: "B",
-  moves: [],
+  getMoves: makeGetBishopMoves(color),
   color,
-  onClick() {},
 });
 const createKing = (color = WHITE) => ({
   id: "king",
   image: "K",
-  moves: [],
+  getMoves({ pieces, x, y }) {
+    const moves = [];
+
+    const allMoves = [
+      { x: x + 1, y },
+      { x: x + 1, y: y + 1 },
+      { x, y: y + 1 },
+      { x: x - 1, y: y + 1 },
+      { x: x - 1, y },
+      { x: x - 1, y: y - 1 },
+      { x, y: y - 1 },
+      { x: x + 1, y: y - 1 },
+    ];
+
+    for (const { x: newX, y: newY } of allMoves) {
+      const newMove = pieces[newY]?.[newX];
+      if (!newMove) continue;
+      if (isEmpty(newMove)) {
+        moves.push({ x: newX, y: newY });
+      } else {
+        if (newMove.color !== color) {
+          moves.push({ x: newX, y: newY });
+        }
+      }
+    }
+
+    return moves;
+  },
   color,
-  onClick() {},
 });
 const createQueen = (color = WHITE) => ({
   id: "queen",
   image: "Q",
-  moves: [],
+  getMoves({ pieces, x, y }) {
+    return [
+      ...makeGetBishopMoves(color)({ pieces, x, y }),
+      ...makeGetRookMoves(color)({ pieces, x, y }),
+    ];
+  },
   color,
-  onClick() {},
 });
 
 function createBoard(board) {
@@ -140,12 +306,7 @@ function clearMoves(pieces) {
   for (let i = 0; i < pieces.length; i++) {
     const row = pieces[i];
     for (let j = 0; j < row.length; j++) {
-      // TODO: Bring back the piece that was there
-      // if (!isEmpty(pieces[i][j])) {
-      //   if (pieces[i][j].showMove) {
       pieces[i][j].showMove = false;
-      // }
-      // }
     }
   }
 }
@@ -173,9 +334,26 @@ function renderPieces(pieces) {
           pieceEl.classList.remove("show-move");
         }
 
+        // TODO: Don't replace this click handler on every render
         pieceEl.onclick = () => {
-          console.log("pieceEl clicked");
-          sq.onClick({ pieces, x, y });
+          clearMoves(pieces);
+          const moveOptions = sq ? sq.getMoves({ pieces, x, y }) : [];
+          for (const { x: newX, y: newY } of moveOptions) {
+            if (
+              newX >= 0 &&
+              newY >= 0 &&
+              newX < BOARD_SIZE &&
+              newY < BOARD_SIZE
+            ) {
+              if (isEmpty(pieces[newY][newX])) {
+                console.log("empty square");
+              } else {
+                console.log("take piece");
+              }
+              pieces[newY][newX].showMove = true;
+            }
+          }
+          render(pieces);
         };
       }
       rowContainer.appendChild(pieceEl);
@@ -190,25 +368,17 @@ function renderPieces(pieces) {
  * @param {Array<Array<Piece | null>>} pieces
  * @param {Array<Array<Move | null>>} moves
  */
-function render(pieces /* , moves */) {
+function render(pieces) {
   // Loop over pieces and render them in their coordinates
   const piecesRoot = document.getElementById("pieces-root");
-  // const movesRoot = document.getElementById("moves-root");
   piecesRoot.innerHTML = "";
-  // movesRoot.innerHTML = "";
   piecesRoot.appendChild(renderPieces(pieces));
-  // TODO: Why are the moves not showing?
-  // movesRoot.appendChild(createMoves(moves));
 }
 
 /** @type Board */
 const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
-
-// const moves = Array.from({ length: BOARD_SIZE }, () =>
-//   Array.from({ length: BOARD_SIZE }, () => ({type: 'empty'})),
-// );
 
 const pieces = [
   [
@@ -257,11 +427,13 @@ const pieces = [
   ],
 ];
 
-pieces[2][3] = createPawn(BLACK);
+pieces[5][4] = createKing(WHITE);
+pieces[3][3] = createQueen(WHITE);
+pieces[3][6] = createRook(WHITE);
+pieces[3][5] = createBishop(WHITE);
 
 // Add images
 
-// When a piece is clicked, highlight its possible moves
 // When a piece is dragged, highlight its possible moves
 // When a move is clicked, move piece and rerender
 // When a piece is dropped, move piece and rerender

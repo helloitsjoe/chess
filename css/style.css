@@ -52,7 +52,7 @@ html, body {
 }
 
 .show-move {
-    background-color: hsla(0, 100%, 50%, 0.5);
+    background-color: hsla(128, 100%, 50%, 0.5);
 }
 
 .piece-black {
