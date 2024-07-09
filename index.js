@@ -1,8 +1,8 @@
 /**
  * @typedef Piece
  * @property {string} id
- * @property {string} image
- * @property {Array<Move>} moves
+ * @property {string} color
+ * @property {Function} getMoves
  */
 
 /**
@@ -13,16 +13,6 @@
 
 /**
  * @typedef Board {Array<Piece | null>}
- */
-
-/**
- * @typedef PieceMap
- * @property {Piece} pawn
- * @property {Piece} rook
- * @property {Piece} knight
- * @property {Piece} bishop
- * @property {Piece} queen
- * @property {Piece} king
  */
 
 const WHITE = "#f5f5f5";
@@ -55,7 +45,7 @@ for (let i = 0; i < files.length; i++) {
   sprites[BLACK][files[i]] = blackSvgs[i];
 }
 
-const isEmpty = (piece) => piece.type === "empty";
+const isEmpty = (piece) => piece.id === "empty";
 
 function makeGetRookMoves(color) {
   return ({ pieces, x, y }) => {
@@ -180,11 +170,9 @@ function makeGetBishopMoves(color) {
   };
 }
 
-const createEmpty = () => ({ type: "empty" });
+const createEmpty = () => ({ id: "empty" });
 const createPawn = (color = WHITE) => ({
   id: "pawn",
-  image: "P",
-  svg: "♙",
   color,
   getMoves({ pieces, x, y }) {
     const direction = color === WHITE ? 1 : -1;
@@ -219,15 +207,11 @@ const createPawn = (color = WHITE) => ({
 });
 const createRook = (color = WHITE) => ({
   id: "rook",
-  image: "R",
-  svg: "♖",
   color,
   getMoves: makeGetRookMoves(color),
 });
 const createKnight = (color = WHITE) => ({
   id: "knight",
-  image: "H",
-  svg: "♘",
   color,
   getMoves({ pieces, x, y }) {
     const moves = [];
@@ -259,15 +243,12 @@ const createKnight = (color = WHITE) => ({
 });
 const createBishop = (color = WHITE) => ({
   id: "bishop",
-  image: "B",
-  svg: "♗",
-  getMoves: makeGetBishopMoves(color),
   color,
+  getMoves: makeGetBishopMoves(color),
 });
 const createKing = (color = WHITE) => ({
   id: "king",
-  image: "K",
-  svg: "♔",
+  color,
   getMoves({ pieces, x, y }) {
     const moves = [];
 
@@ -296,19 +277,16 @@ const createKing = (color = WHITE) => ({
 
     return moves;
   },
-  color,
 });
 const createQueen = (color = WHITE) => ({
   id: "queen",
-  image: "Q",
-  svg: "♕",
+  color,
   getMoves({ pieces, x, y }) {
     return [
       ...makeGetBishopMoves(color)({ pieces, x, y }),
       ...makeGetRookMoves(color)({ pieces, x, y }),
     ];
   },
-  color,
 });
 
 function createBoard(board) {
@@ -337,7 +315,7 @@ function clearMoves(pieces) {
   for (let i = 0; i < pieces.length; i++) {
     const row = pieces[i];
     for (let j = 0; j < row.length; j++) {
-      pieces[i][j].showMove = false;
+      pieces[i][j].pendingMove = null;
     }
   }
 }
@@ -352,24 +330,11 @@ function renderPieces(pieces) {
       const pieceEl = document.createElement("div");
       pieceEl.classList.add("square", "piece");
       if (sq) {
-        // const sprite = document.createElement("svg");
-        // sprite.innerHTML = sq.sprite;
-        // pieceEl.appendChild(sprite);
-
-        if (sq.type !== "empty") {
-          console.log(sq.color, sq.id, sprites[sq.color][sq.id]);
+        if (sq.id !== "empty") {
           pieceEl.innerHTML = sprites[sq.color][sq.id];
         }
 
-        // pieceEl.textContent = sq.svg || sq.image;
-
-        // if (sq.color === BLACK) {
-        //   pieceEl.classList.add("piece-black");
-        // } else {
-        //   pieceEl.classList.add("piece-white");
-        // }
-
-        if (sq.showMove) {
+        if (sq.pendingMove) {
           pieceEl.classList.add("show-move");
         } else {
           pieceEl.classList.remove("show-move");
@@ -377,21 +342,26 @@ function renderPieces(pieces) {
 
         // TODO: Don't replace this click handler on every render
         pieceEl.onclick = () => {
-          clearMoves(pieces);
-          const moveOptions = sq ? sq.getMoves({ pieces, x, y }) : [];
-          for (const { x: newX, y: newY } of moveOptions) {
-            if (
-              newX >= 0 &&
-              newY >= 0 &&
-              newX < BOARD_SIZE &&
-              newY < BOARD_SIZE
-            ) {
-              if (isEmpty(pieces[newY][newX])) {
-                console.log("empty square");
-              } else {
-                console.log("take piece");
+          if (sq.pendingMove) {
+            // Move piece
+            const { x: oldX, y: oldY } = sq.pendingMove;
+            pieces[y][x] = pieces[oldY][oldX];
+            pieces[oldY][oldX] = createEmpty();
+            clearMoves(pieces);
+          } else {
+            clearMoves(pieces);
+            const moveOptions = sq?.getMoves
+              ? sq.getMoves({ pieces, x, y })
+              : [];
+            for (const { x: newX, y: newY } of moveOptions) {
+              if (
+                newX >= 0 &&
+                newY >= 0 &&
+                newX < BOARD_SIZE &&
+                newY < BOARD_SIZE
+              ) {
+                pieces[newY][newX].pendingMove = { x, y };
               }
-              pieces[newY][newX].showMove = true;
             }
           }
           render(pieces);
@@ -468,18 +438,17 @@ const pieces = [
   ],
 ];
 
-pieces[5][4] = createKing(WHITE);
-pieces[3][3] = createQueen(BLACK);
-pieces[3][6] = createRook(BLACK);
-pieces[3][5] = createBishop(BLACK);
-
-// Add images
+// pieces[5][4] = createKing(WHITE);
+// pieces[3][3] = createQueen(BLACK);
+// pieces[3][6] = createRook(BLACK);
+// pieces[3][5] = createBishop(BLACK);
 
 // When a piece is dragged, highlight its possible moves
-// When a move is clicked, move piece and rerender
 // When a piece is dropped, move piece and rerender
 
 // Take another piece when you land on it
+
+// Only allow one side to move at a time
 
 // const whiteTaken = {};
 // const blackTaken = {};
