@@ -27,6 +27,9 @@ const BOARD_SIZE = 8;
 const whiteTaken = {};
 const blackTaken = {};
 
+let turn = 'black';
+
+// Sprites
 const files = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
 
 const whiteSvgs = await Promise.all(
@@ -48,6 +51,7 @@ for (let i = 0; i < files.length; i++) {
   sprites[BLACK][files[i]] = blackSvgs[i];
 }
 
+// Piece moves
 const isEmpty = (piece) => piece.id === 'empty';
 
 function makeGetRookMoves(color) {
@@ -173,6 +177,7 @@ function makeGetBishopMoves(color) {
   };
 }
 
+// Pieces
 const createEmpty = () => ({ id: 'empty' });
 const createPawn = (color = WHITE) => ({
   id: 'pawn',
@@ -348,9 +353,26 @@ function renderPieces(pieces) {
           if (sq.pendingMove) {
             // Move piece
             const { x: oldX, y: oldY } = sq.pendingMove;
+
+            // TODO: Move this into getMoves?
+            // TODO: Handle getting pieces back
+            const pieceToTake = pieces[y][x];
+            if (!isEmpty(pieceToTake)) {
+              if (pieceToTake.color === WHITE) {
+                whiteTaken[pieceToTake.id] =
+                  (whiteTaken[pieceToTake.id] || 0) + 1;
+              } else {
+                blackTaken[pieceToTake.id] =
+                  (blackTaken[pieceToTake.id] || 0) + 1;
+              }
+            }
+
+            // Make move
             pieces[y][x] = pieces[oldY][oldX];
             pieces[oldY][oldX] = createEmpty();
             clearMoves(pieces);
+            turn = turn === 'white' ? 'black' : 'white';
+            console.log(`Now it's ${turn}'s turn`);
           } else {
             clearMoves(pieces);
             const moveOptions = sq?.getMoves
@@ -385,6 +407,8 @@ function renderPieces(pieces) {
 function render(pieces) {
   // Loop over pieces and render them in their coordinates
   const piecesRoot = document.getElementById('pieces-root');
+  // const whiteTakenBox = document.getElementById('white-taken');
+  // const blackTakenBox = document.getElementById('black-taken');
   piecesRoot.innerHTML = '';
   piecesRoot.appendChild(renderPieces(pieces));
 }
