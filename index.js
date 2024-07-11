@@ -1,6 +1,7 @@
 import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
 import { isEmpty } from './utils.js';
 import { sprites } from './sprites.js';
+import { createHistory } from './history.js';
 import {
   createPawn,
   createRook,
@@ -43,34 +44,16 @@ import {
 const whiteTaken = {};
 const blackTaken = {};
 
-const history = [];
+const history = createHistory();
 
 document.getElementById('undo').onclick = () => {
-  if (history.length) {
-    const { pieces } = history.pop();
-    render(rehydrate(pieces));
-  }
+  const previous = history.getLastMove();
+  if (!previous) return;
+  turn = turn === WHITE ? BLACK : WHITE;
+  render(previous);
 };
 
 let turn = BLACK;
-
-function rehydrate(pieces) {
-  const factoryMap = {
-    pawn: createPawn,
-    rook: createRook,
-    knight: createKnight,
-    bishop: createBishop,
-    king: createKing,
-    queen: createQueen,
-  };
-
-  return pieces.map((row) =>
-    row.map((piece) => {
-      const factory = factoryMap[piece.id];
-      return factory ? factory(piece.color) : createEmpty();
-    }),
-  );
-}
 
 function createBoard(board) {
   const boardDiv = document.createElement('div');
@@ -146,8 +129,7 @@ function renderPieces(pieces) {
               }
             }
 
-            // TODO: Optimize this by only saving the pieces that have changed
-            history.push({ pieces: JSON.parse(JSON.stringify(pieces)) });
+            history.push(pieces);
 
             // Make move
             pieces[y][x] = pieces[oldY][oldX];
