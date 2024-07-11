@@ -86,6 +86,12 @@ html, body {
     padding: 20px;
 }
 
+.turn {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
 #taken-container {
     display: flex;
     flex-direction: column;

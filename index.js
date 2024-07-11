@@ -1,9 +1,20 @@
+import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
+import { isEmpty } from './utils.js';
+import { sprites } from './sprites.js';
+import {
+  createPawn,
+  createRook,
+  createKnight,
+  createBishop,
+  createKing,
+  createQueen,
+  createEmpty,
+} from './pieces.js';
+
 // TODO:
-// Undo
-// Only allow one side to move at a time
 // Check for check
 // Check for checkmate
-// Take another piece when you land on it
+// Move taken pieces to the side
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
@@ -29,10 +40,6 @@
  * @returns {boolean}
  */
 
-const WHITE = '#f5f5f5';
-const BLACK = '#040404';
-const BOARD_SIZE = 8;
-
 const whiteTaken = {};
 const blackTaken = {};
 
@@ -45,275 +52,7 @@ document.getElementById('undo').onclick = () => {
   }
 };
 
-let turn = 'black';
-
-// Sprites
-const files = ['king', 'queen', 'rook', 'bishop', 'knight', 'pawn'];
-
-const whiteSvgs = await Promise.all(
-  files.map((file) =>
-    fetch(`./assets/white-${file}.svg`).then((res) => res.text()),
-  ),
-);
-
-const blackSvgs = await Promise.all(
-  files.map((file) =>
-    fetch(`./assets/black-${file}.svg`).then((res) => res.text()),
-  ),
-);
-
-const sprites = { [WHITE]: {}, [BLACK]: {} };
-
-for (let i = 0; i < files.length; i++) {
-  sprites[WHITE][files[i]] = whiteSvgs[i];
-  sprites[BLACK][files[i]] = blackSvgs[i];
-}
-
-// Piece moves
-const isEmpty = (piece) => piece.id === 'empty';
-
-function makeGetRookMoves(color) {
-  return ({ pieces, x, y }) => {
-    const moves = [];
-
-    for (let i = x + 1; i < BOARD_SIZE; i++) {
-      if (isEmpty(pieces[y][i])) {
-        moves.push({ x: i, y });
-      } else {
-        if (pieces[y][i].color !== color) {
-          moves.push({ x: i, y });
-        }
-        break;
-      }
-    }
-
-    for (let i = x - 1; i >= 0; i--) {
-      if (isEmpty(pieces[y][i])) {
-        moves.push({ x: i, y });
-      } else {
-        if (pieces[y][i].color !== color) {
-          moves.push({ x: i, y });
-        }
-        break;
-      }
-    }
-
-    for (let i = y + 1; i < BOARD_SIZE; i++) {
-      if (isEmpty(pieces[i][x])) {
-        moves.push({ x, y: i });
-      } else {
-        if (pieces[i][x].color !== color) {
-          moves.push({ x, y: i });
-        }
-        break;
-      }
-    }
-
-    for (let i = y - 1; i >= 0; i--) {
-      if (isEmpty(pieces[i][x])) {
-        moves.push({ x, y: i });
-      } else {
-        if (pieces[i][x].color !== color) {
-          moves.push({ x, y: i });
-        }
-        break;
-      }
-    }
-
-    return moves;
-  };
-}
-
-function makeGetBishopMoves(color) {
-  return ({ pieces, x, y }) => {
-    const moves = [];
-
-    // TODO: Try to DRY this up
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newY = y + i;
-      const newX = x + i;
-
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-        break;
-      }
-    }
-
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newY = y - i;
-      const newX = x - i;
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-        break;
-      }
-    }
-
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newY = y - i;
-      const newX = x + i;
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-        break;
-      }
-    }
-
-    for (let i = 1; i < BOARD_SIZE; i++) {
-      const newY = y + i;
-      const newX = x - i;
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-        break;
-      }
-    }
-
-    return moves;
-  };
-}
-
-// Pieces
-const createEmpty = () => ({ id: 'empty' });
-const createPawn = (color = WHITE) => ({
-  id: 'pawn',
-  color,
-  getMoves({ pieces, x, y }) {
-    const direction = color === WHITE ? 1 : -1;
-    const startY = color === WHITE ? 1 : 6;
-    const newY = y + 1 * direction;
-    const newYStart = y + 2 * direction;
-
-    const moves = [];
-
-    // If a piece is not directly in front of the pawn, it can move
-    // If the pawn is not in its starting position, it can move one square
-    if (isEmpty(pieces[newY][x])) {
-      moves.push({ x, y: newY });
-      // If the pawn is in its starting position, it can move two squares
-      if (y === startY && isEmpty(pieces[newYStart][x])) {
-        moves.push({ x, y: newYStart });
-      }
-    }
-    // If a piece is diagonally in front of the pawn, it can take it
-    // as long as the color is different
-    const leftPiece = pieces[newY][x + 1];
-    const rightPiece = pieces[newY][x - 1];
-    if (leftPiece && !isEmpty(leftPiece) && leftPiece.color !== color) {
-      moves.push({ x: x + 1, y: newY });
-    }
-    if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
-      moves.push({ x: x - 1, y: newY });
-    }
-
-    return moves;
-  },
-});
-const createRook = (color = WHITE) => ({
-  id: 'rook',
-  color,
-  getMoves: makeGetRookMoves(color),
-});
-const createKnight = (color = WHITE) => ({
-  id: 'knight',
-  color,
-  getMoves({ pieces, x, y }) {
-    const moves = [];
-    const allMoves = [
-      { x: x + 1, y: y + 2 },
-      { x: x + 2, y: y + 1 },
-      { x: x + 2, y: y - 1 },
-      { x: x + 1, y: y - 2 },
-      { x: x - 1, y: y - 2 },
-      { x: x - 2, y: y - 1 },
-      { x: x - 2, y: y + 1 },
-      { x: x - 1, y: y + 2 },
-    ];
-
-    for (const { x: newX, y: newY } of allMoves) {
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-      }
-    }
-
-    return moves;
-  },
-});
-const createBishop = (color = WHITE) => ({
-  id: 'bishop',
-  color,
-  getMoves: makeGetBishopMoves(color),
-});
-const createKing = (color = WHITE) => ({
-  id: 'king',
-  color,
-  getMoves({ pieces, x, y }) {
-    const moves = [];
-
-    const allMoves = [
-      { x, y: y + 1 },
-      { x, y: y - 1 },
-      { x: x + 1, y },
-      { x: x - 1, y },
-      { x: x + 1, y: y + 1 },
-      { x: x - 1, y: y + 1 },
-      { x: x - 1, y: y - 1 },
-      { x: x + 1, y: y - 1 },
-    ];
-
-    for (const { x: newX, y: newY } of allMoves) {
-      const newMove = pieces[newY]?.[newX];
-      if (!newMove) continue;
-      if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
-      } else {
-        if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
-        }
-      }
-    }
-
-    return moves;
-  },
-});
-const createQueen = (color = WHITE) => ({
-  id: 'queen',
-  color,
-  getMoves({ pieces, x, y }) {
-    return [
-      ...makeGetBishopMoves(color)({ pieces, x, y }),
-      ...makeGetRookMoves(color)({ pieces, x, y }),
-    ];
-  },
-});
+let turn = BLACK;
 
 function rehydrate(pieces) {
   const factoryMap = {
@@ -365,6 +104,9 @@ function clearMoves(pieces) {
 }
 
 function renderPieces(pieces) {
+  document.getElementById('turn').innerText =
+    turn === WHITE ? "White's move" : "Black's move";
+
   const piecesContainer = document.createElement('div');
   piecesContainer.classList.add('pieces');
   pieces.forEach((row, y) => {
@@ -386,7 +128,6 @@ function renderPieces(pieces) {
 
         // TODO: Don't replace this click handler on every render
         pieceEl.onclick = () => {
-          console.log('click');
           if (sq.pendingMove) {
             // Move piece
             const { x: oldX, y: oldY } = sq.pendingMove;
@@ -412,27 +153,24 @@ function renderPieces(pieces) {
             pieces[y][x] = pieces[oldY][oldX];
             pieces[oldY][oldX] = createEmpty();
 
-            turn = turn === 'white' ? 'black' : 'white';
-            console.log(`Now it's ${turn}'s turn`);
+            turn = turn === WHITE ? BLACK : WHITE;
           } else {
             clearMoves(pieces);
-            console.log('sq', sq);
-            const moveOptions = sq?.getMoves
-              ? sq.getMoves({ pieces, x, y })
-              : [];
-            console.log('moveOptions', moveOptions);
-            for (const { x: newX, y: newY } of moveOptions) {
-              if (
-                newX >= 0 &&
-                newY >= 0 &&
-                newX < BOARD_SIZE &&
-                newY < BOARD_SIZE
-              ) {
-                pieces[newY][newX].pendingMove = { x, y };
-                console.log('pieces[newY][newX]', pieces[newY][newX]);
+            if (sq.color === turn) {
+              const moveOptions = sq?.getMoves
+                ? sq.getMoves({ pieces, x, y })
+                : [];
+              for (const { x: newX, y: newY } of moveOptions) {
+                if (
+                  newX >= 0 &&
+                  newY >= 0 &&
+                  newX < BOARD_SIZE &&
+                  newY < BOARD_SIZE
+                ) {
+                  pieces[newY][newX].pendingMove = { x, y };
+                }
               }
             }
-            console.log('sq', sq);
           }
           render(pieces);
         };
