@@ -1,3 +1,12 @@
+// TODO:
+// Undo
+// Only allow one side to move at a time
+// Check for check
+// Check for checkmate
+// Take another piece when you land on it
+// Specialty moves (castling, en passant)
+// Drag-n-drop
+
 /**
  * @typedef Piece
  * @property {string} id
@@ -26,6 +35,15 @@ const BOARD_SIZE = 8;
 
 const whiteTaken = {};
 const blackTaken = {};
+
+const history = [];
+
+document.getElementById('undo').onclick = () => {
+  if (history.length) {
+    const { pieces } = history.pop();
+    render(rehydrate(pieces));
+  }
+};
 
 let turn = 'black';
 
@@ -297,6 +315,24 @@ const createQueen = (color = WHITE) => ({
   },
 });
 
+function rehydrate(pieces) {
+  const factoryMap = {
+    pawn: createPawn,
+    rook: createRook,
+    knight: createKnight,
+    bishop: createBishop,
+    king: createKing,
+    queen: createQueen,
+  };
+
+  return pieces.map((row) =>
+    row.map((piece) => {
+      const factory = factoryMap[piece.id];
+      return factory ? factory(piece.color) : createEmpty();
+    }),
+  );
+}
+
 function createBoard(board) {
   const boardDiv = document.createElement('div');
   boardDiv.classList.add('board');
@@ -350,9 +386,11 @@ function renderPieces(pieces) {
 
         // TODO: Don't replace this click handler on every render
         pieceEl.onclick = () => {
+          console.log('click');
           if (sq.pendingMove) {
             // Move piece
             const { x: oldX, y: oldY } = sq.pendingMove;
+            clearMoves(pieces);
 
             // TODO: Move this into getMoves?
             // TODO: Handle getting pieces back
@@ -367,17 +405,22 @@ function renderPieces(pieces) {
               }
             }
 
+            // TODO: Optimize this by only saving the pieces that have changed
+            history.push({ pieces: JSON.parse(JSON.stringify(pieces)) });
+
             // Make move
             pieces[y][x] = pieces[oldY][oldX];
             pieces[oldY][oldX] = createEmpty();
-            clearMoves(pieces);
+
             turn = turn === 'white' ? 'black' : 'white';
             console.log(`Now it's ${turn}'s turn`);
           } else {
             clearMoves(pieces);
+            console.log('sq', sq);
             const moveOptions = sq?.getMoves
               ? sq.getMoves({ pieces, x, y })
               : [];
+            console.log('moveOptions', moveOptions);
             for (const { x: newX, y: newY } of moveOptions) {
               if (
                 newX >= 0 &&
@@ -386,8 +429,10 @@ function renderPieces(pieces) {
                 newY < BOARD_SIZE
               ) {
                 pieces[newY][newX].pendingMove = { x, y };
+                console.log('pieces[newY][newX]', pieces[newY][newX]);
               }
             }
+            console.log('sq', sq);
           }
           render(pieces);
         };
@@ -464,18 +509,6 @@ const pieces = [
     createRook(BLACK),
   ],
 ];
-
-// pieces[5][4] = createKing(WHITE);
-// pieces[3][3] = createQueen(BLACK);
-// pieces[3][6] = createRook(BLACK);
-// pieces[3][5] = createBishop(BLACK);
-
-// When a piece is dragged, highlight its possible moves
-// When a piece is dropped, move piece and rerender
-
-// Take another piece when you land on it
-
-// Only allow one side to move at a time
 
 document.getElementById('board-root').appendChild(createBoard(board));
 

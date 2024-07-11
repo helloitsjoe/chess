@@ -74,14 +74,21 @@ html, body {
         2px 2px #666;
 }
 
-.taken-container {
+#other-container {
     display: flex;
     flex-direction: column;
-    /* justify-content: space-between; */
     position: absolute;
     top: 0;
     left: calc(var(--square-size) * var(--board-size));
-    height: calc(var(--square-size) * var(--board-size));
+}
+
+#controls-container {
+    padding: 20px;
+}
+
+#taken-container {
+    display: flex;
+    flex-direction: column;
 }
 
 .taken {

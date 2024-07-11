@@ -4,12 +4,19 @@
     <link rel="stylesheet" type="text/css" href="css/style.css" />
   </head>
   <body>
-    <div id="board-root"></div>
-    <div id="pieces-root"></div>
-    <!-- <div class="taken-container"> -->
-    <!--   <div id="white-taken" class="taken"></div> -->
-    <!--   <div id="black-taken" class="taken"></div> -->
-    <!-- </div> -->
+    <div id="board-container">
+      <div id="board-root"></div>
+      <div id="pieces-root"></div>
+    </div>
+    <div id="other-container">
+      <div id="controls-container">
+        <button id="undo">Undo</button>
+      </div>
+      <div id="taken-container">
+        <div id="white-taken" class="taken"></div>
+        <div id="black-taken" class="taken"></div>
+      </div>
+    </div>
     <script type="module" src="./index.js"></script>
   </body>
 </html>
