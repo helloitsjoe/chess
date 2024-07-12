@@ -78,6 +78,7 @@ html, body {
     display: flex;
     flex-direction: column;
     position: absolute;
+    height: 100vh;
     top: 0;
     left: calc(var(--square-size) * var(--board-size));
 }
@@ -95,6 +96,8 @@ html, body {
 #taken-container {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    height: 100vh;
 }
 
 .taken {

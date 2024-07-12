@@ -1,5 +1,5 @@
 import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
-import { isEmpty } from './utils.js';
+import { isEmpty, rehydrate } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
 import {
@@ -15,7 +15,6 @@ import {
 // TODO:
 // Check for check
 // Check for checkmate
-// Move taken pieces to the side
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
@@ -46,11 +45,36 @@ const blackTaken = {};
 
 const history = createHistory();
 
-document.getElementById('undo').onclick = () => {
+document.getElementById('undo-button').onclick = () => {
   const previous = history.getLastMove();
   if (!previous) return;
   turn = turn === WHITE ? BLACK : WHITE;
-  render(previous);
+  const { pieces: previousPieces, takenPiece } = previous;
+  if (!isEmpty(takenPiece)) {
+    const { color, id } = takenPiece;
+    if (color === WHITE) {
+      blackTaken[id]--;
+    } else {
+      whiteTaken[id]--;
+    }
+  }
+  draw(previousPieces, whiteTaken, blackTaken);
+};
+
+document.getElementById('save-button').onclick = () => {
+  // TODO: Need to get whiteTaken and blackTaken
+  localStorage.setItem(
+    'chess',
+    JSON.stringify({ pieces, whiteTaken, blackTaken }),
+  );
+};
+
+document.getElementById('load-button').onclick = () => {
+  const { pieces, whiteTaken, blackTaken } = JSON.parse(
+    localStorage.getItem('chess'),
+  );
+  console.log('pieces', pieces);
+  draw(rehydrate(pieces), whiteTaken, blackTaken);
 };
 
 let turn = BLACK;
@@ -86,7 +110,8 @@ function clearMoves(pieces) {
   }
 }
 
-function renderPieces(pieces) {
+// TODO: Shouldn't need to pass in taken pieces
+function drawPieces(pieces, whiteTaken, blackTaken) {
   document.getElementById('turn').innerText =
     turn === WHITE ? "White's move" : "Black's move";
 
@@ -109,7 +134,7 @@ function renderPieces(pieces) {
           pieceEl.classList.remove('show-move');
         }
 
-        // TODO: Don't replace this click handler on every render
+        // TODO: Don't replace this click handler on every draw
         pieceEl.onclick = () => {
           if (sq.pendingMove) {
             // Move piece
@@ -121,15 +146,15 @@ function renderPieces(pieces) {
             const pieceToTake = pieces[y][x];
             if (!isEmpty(pieceToTake)) {
               if (pieceToTake.color === WHITE) {
-                whiteTaken[pieceToTake.id] =
-                  (whiteTaken[pieceToTake.id] || 0) + 1;
-              } else {
                 blackTaken[pieceToTake.id] =
                   (blackTaken[pieceToTake.id] || 0) + 1;
+              } else {
+                whiteTaken[pieceToTake.id] =
+                  (whiteTaken[pieceToTake.id] || 0) + 1;
               }
             }
 
-            history.push(pieces);
+            history.push(pieces, pieceToTake);
 
             // Make move
             pieces[y][x] = pieces[oldY][oldX];
@@ -154,7 +179,7 @@ function renderPieces(pieces) {
               }
             }
           }
-          render(pieces);
+          draw(pieces, whiteTaken, blackTaken);
         };
       }
       rowContainer.appendChild(pieceEl);
@@ -169,13 +194,33 @@ function renderPieces(pieces) {
  * @param {Array<Array<Piece | null>>} pieces
  * @param {Array<Array<Move | null>>} moves
  */
-function render(pieces) {
-  // Loop over pieces and render them in their coordinates
+function draw(pieces, whiteTaken, blackTaken) {
+  // Loop over pieces and draw them in their coordinates
   const piecesRoot = document.getElementById('pieces-root');
-  // const whiteTakenBox = document.getElementById('white-taken');
-  // const blackTakenBox = document.getElementById('black-taken');
+  const whiteTakenBox = document.getElementById('white-taken');
+  const blackTakenBox = document.getElementById('black-taken');
+
   piecesRoot.innerHTML = '';
-  piecesRoot.appendChild(renderPieces(pieces));
+  piecesRoot.appendChild(drawPieces(pieces, whiteTaken, blackTaken));
+
+  whiteTakenBox.innerHTML = '';
+  blackTakenBox.innerHTML = '';
+
+  Object.entries(whiteTaken).forEach(([piece, count]) => {
+    for (let i = 0; i < count; i++) {
+      const pieceEl = document.createElement('div');
+      pieceEl.innerHTML = sprites[BLACK][piece];
+      whiteTakenBox.appendChild(pieceEl);
+    }
+  });
+
+  Object.entries(blackTaken).forEach(([piece, count]) => {
+    for (let i = 0; i < count; i++) {
+      const pieceEl = document.createElement('div');
+      pieceEl.innerHTML = sprites[WHITE][piece];
+      blackTakenBox.appendChild(pieceEl);
+    }
+  });
 }
 
 /** @type Board */
@@ -232,4 +277,4 @@ const pieces = [
 
 document.getElementById('board-root').appendChild(createBoard(board));
 
-render(pieces);
+draw(pieces, whiteTaken, blackTaken);
