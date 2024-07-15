@@ -74,6 +74,12 @@ html, body {
         2px 2px #666;
 }
 
+.main {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+}
+
 #other-container {
     display: flex;
     flex-direction: column;
@@ -81,6 +87,7 @@ html, body {
     height: 100vh;
     top: 0;
     left: calc(var(--square-size) * var(--board-size));
+    flex-shrink: 0;
 }
 
 #controls-container {
@@ -98,6 +105,7 @@ html, body {
     flex-direction: column;
     flex-grow: 1;
     height: 100vh;
+    overflow-x: scroll;
 }
 
 .taken {
@@ -108,5 +116,4 @@ html, body {
     margin: 20;
     padding: 20;
     border-radius: 4px;
-    overflow-x: scroll;
 }

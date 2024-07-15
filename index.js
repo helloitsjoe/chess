@@ -45,7 +45,7 @@ const blackTaken = {};
 
 const history = createHistory();
 
-document.getElementById('undo-button').onclick = () => {
+function undo() {
   const previous = history.getLastMove();
   if (!previous) return;
   turn = turn === WHITE ? BLACK : WHITE;
@@ -59,7 +59,15 @@ document.getElementById('undo-button').onclick = () => {
     }
   }
   draw(previousPieces, whiteTaken, blackTaken);
-};
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'u') {
+    undo();
+  }
+});
+
+document.getElementById('undo-button').onclick = undo;
 
 document.getElementById('save-button').onclick = () => {
   // TODO: Need to get whiteTaken and blackTaken
