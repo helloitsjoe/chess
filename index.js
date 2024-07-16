@@ -40,9 +40,6 @@ import {
  * @returns {boolean}
  */
 
-const whiteTaken = {};
-const blackTaken = {};
-
 const history = createHistory();
 
 function undo() {
@@ -53,36 +50,30 @@ function undo() {
   if (!isEmpty(takenPiece)) {
     const { color, id } = takenPiece;
     if (color === WHITE) {
-      blackTaken[id]--;
+      game.blackTaken[id]--;
     } else {
-      whiteTaken[id]--;
+      game.whiteTaken[id]--;
     }
   }
-  draw(previousPieces, whiteTaken, blackTaken);
+  game.pieces = previousPieces;
+  draw(game);
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'u') {
-    undo();
-  }
+  if (e.key === 'u') undo();
 });
 
 document.getElementById('undo-button').onclick = undo;
 
 document.getElementById('save-button').onclick = () => {
   // TODO: Need to get whiteTaken and blackTaken
-  localStorage.setItem(
-    'chess',
-    JSON.stringify({ pieces, whiteTaken, blackTaken }),
-  );
+  localStorage.setItem('chess', JSON.stringify(game));
 };
 
 document.getElementById('load-button').onclick = () => {
-  const { pieces, whiteTaken, blackTaken } = JSON.parse(
-    localStorage.getItem('chess'),
-  );
-  console.log('pieces', pieces);
-  draw(rehydrate(pieces), whiteTaken, blackTaken);
+  game = JSON.parse(localStorage.getItem('chess'));
+  game.pieces = rehydrate(game.pieces);
+  draw(game);
 };
 
 let turn = BLACK;
@@ -118,8 +109,7 @@ function clearMoves(pieces) {
   }
 }
 
-// TODO: Shouldn't need to pass in taken pieces
-function drawPieces(pieces, whiteTaken, blackTaken) {
+function drawPieces({ pieces }) {
   document.getElementById('turn').innerText =
     turn === WHITE ? "White's move" : "Black's move";
 
@@ -144,50 +134,8 @@ function drawPieces(pieces, whiteTaken, blackTaken) {
 
         // TODO: Don't replace this click handler on every draw
         pieceEl.onclick = () => {
-          if (sq.pendingMove) {
-            // Move piece
-            const { x: oldX, y: oldY } = sq.pendingMove;
-            clearMoves(pieces);
-
-            // TODO: Move this into getMoves?
-            // TODO: Handle getting pieces back
-            const pieceToTake = pieces[y][x];
-            if (!isEmpty(pieceToTake)) {
-              if (pieceToTake.color === WHITE) {
-                blackTaken[pieceToTake.id] =
-                  (blackTaken[pieceToTake.id] || 0) + 1;
-              } else {
-                whiteTaken[pieceToTake.id] =
-                  (whiteTaken[pieceToTake.id] || 0) + 1;
-              }
-            }
-
-            history.push(pieces, pieceToTake);
-
-            // Make move
-            pieces[y][x] = pieces[oldY][oldX];
-            pieces[oldY][oldX] = createEmpty();
-
-            turn = turn === WHITE ? BLACK : WHITE;
-          } else {
-            clearMoves(pieces);
-            if (sq.color === turn) {
-              const moveOptions = sq?.getMoves
-                ? sq.getMoves({ pieces, x, y })
-                : [];
-              for (const { x: newX, y: newY } of moveOptions) {
-                if (
-                  newX >= 0 &&
-                  newY >= 0 &&
-                  newX < BOARD_SIZE &&
-                  newY < BOARD_SIZE
-                ) {
-                  pieces[newY][newX].pendingMove = { x, y };
-                }
-              }
-            }
-          }
-          draw(pieces, whiteTaken, blackTaken);
+          update({ game, sq, x, y });
+          draw(game);
         };
       }
       rowContainer.appendChild(pieceEl);
@@ -198,21 +146,63 @@ function drawPieces(pieces, whiteTaken, blackTaken) {
   return piecesContainer;
 }
 
+function update({ game, sq, x, y }) {
+  const { pieces, whiteTaken, blackTaken } = game;
+  if (sq.pendingMove) {
+    // Move piece
+    const { x: oldX, y: oldY } = sq.pendingMove;
+    clearMoves(pieces);
+
+    // TODO: Move this into getMoves?
+    // TODO: Handle getting pieces back
+    const pieceToTake = pieces[y][x];
+    if (!isEmpty(pieceToTake)) {
+      if (pieceToTake.color === WHITE) {
+        blackTaken[pieceToTake.id] = (blackTaken[pieceToTake.id] || 0) + 1;
+      } else {
+        whiteTaken[pieceToTake.id] = (whiteTaken[pieceToTake.id] || 0) + 1;
+      }
+    }
+
+    history.push(pieces, pieceToTake);
+
+    // Make move
+    pieces[y][x] = pieces[oldY][oldX];
+    pieces[oldY][oldX] = createEmpty();
+
+    turn = turn === WHITE ? BLACK : WHITE;
+  } else {
+    clearMoves(pieces);
+    if (sq.color === turn) {
+      const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
+      for (const { x: newX, y: newY } of moveOptions) {
+        if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
+          pieces[newY][newX].pendingMove = { x, y };
+        }
+      }
+    }
+  }
+
+  game = { pieces, whiteTaken, blackTaken };
+}
+
 /**
  * @param {Array<Array<Piece | null>>} pieces
  * @param {Array<Array<Move | null>>} moves
  */
-function draw(pieces, whiteTaken, blackTaken) {
+function draw(game) {
   // Loop over pieces and draw them in their coordinates
   const piecesRoot = document.getElementById('pieces-root');
   const whiteTakenBox = document.getElementById('white-taken');
   const blackTakenBox = document.getElementById('black-taken');
 
   piecesRoot.innerHTML = '';
-  piecesRoot.appendChild(drawPieces(pieces, whiteTaken, blackTaken));
+  piecesRoot.appendChild(drawPieces(game));
 
   whiteTakenBox.innerHTML = '';
   blackTakenBox.innerHTML = '';
+
+  const { whiteTaken, blackTaken } = game;
 
   Object.entries(whiteTaken).forEach(([piece, count]) => {
     for (let i = 0; i < count; i++) {
@@ -236,53 +226,57 @@ const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
 
-const pieces = [
-  [
-    createRook(),
-    createKnight(),
-    createBishop(),
-    createKing(),
-    createQueen(),
-    createBishop(),
-    createKnight(),
-    createRook(),
+let game = {
+  pieces: [
+    [
+      createRook(),
+      createKnight(),
+      createBishop(),
+      createKing(),
+      createQueen(),
+      createBishop(),
+      createKnight(),
+      createRook(),
+    ],
+    [
+      createPawn(),
+      createPawn(),
+      createPawn(),
+      createPawn(),
+      createPawn(),
+      createPawn(),
+      createPawn(),
+      createPawn(),
+    ],
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    [
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+      createPawn(BLACK),
+    ],
+    [
+      createRook(BLACK),
+      createKnight(BLACK),
+      createBishop(BLACK),
+      createQueen(BLACK),
+      createKing(BLACK),
+      createBishop(BLACK),
+      createKnight(BLACK),
+      createRook(BLACK),
+    ],
   ],
-  [
-    createPawn(),
-    createPawn(),
-    createPawn(),
-    createPawn(),
-    createPawn(),
-    createPawn(),
-    createPawn(),
-    createPawn(),
-  ],
-  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-  Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-  [
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-    createPawn(BLACK),
-  ],
-  [
-    createRook(BLACK),
-    createKnight(BLACK),
-    createBishop(BLACK),
-    createQueen(BLACK),
-    createKing(BLACK),
-    createBishop(BLACK),
-    createKnight(BLACK),
-    createRook(BLACK),
-  ],
-];
+  whiteTaken: {},
+  blackTaken: {},
+};
 
 document.getElementById('board-root').appendChild(createBoard(board));
 
-draw(pieces, whiteTaken, blackTaken);
+draw(game);
