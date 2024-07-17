@@ -14,7 +14,10 @@ import {
 
 // TODO:
 // Check for check
+// Disallow move to check
 // Check for checkmate
+// Check for stalemate?
+// Blocked squares red?
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
@@ -41,6 +44,7 @@ import {
  */
 
 const history = createHistory();
+let showHints = true;
 
 function undo() {
   const previous = history.getLastMove();
@@ -66,13 +70,18 @@ window.addEventListener('keydown', (e) => {
 document.getElementById('undo-button').onclick = undo;
 
 document.getElementById('save-button').onclick = () => {
-  // TODO: Need to get whiteTaken and blackTaken
   localStorage.setItem('chess', JSON.stringify(game));
 };
 
 document.getElementById('load-button').onclick = () => {
   game = JSON.parse(localStorage.getItem('chess'));
   game.pieces = rehydrate(game.pieces);
+  draw(game);
+};
+
+document.getElementById('show-hints').onchange = (e) => {
+  showHints = !showHints;
+  e.target.checked = showHints;
   draw(game);
 };
 
@@ -126,10 +135,12 @@ function drawPieces({ pieces }) {
           pieceEl.innerHTML = sprites[sq.color][sq.id];
         }
 
-        if (sq.pendingMove) {
-          pieceEl.classList.add('show-move');
-        } else {
-          pieceEl.classList.remove('show-move');
+        if (showHints) {
+          if (sq.pendingMove) {
+            pieceEl.classList.add('show-move');
+          } else {
+            pieceEl.classList.remove('show-move');
+          }
         }
 
         // TODO: Don't replace this click handler on every draw
