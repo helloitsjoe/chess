@@ -21,28 +21,6 @@ import {
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
-/**
- * @typedef Piece
- * @property {string} id
- * @property {string} color
- * @property {Function} getMoves
- */
-
-/**
- * @typedef Move
- * @property {number} x
- * @property {number} y
- */
-
-/**
- * @typedef Board {Array<Piece | null>}
- */
-
-/**
- * @param {Piece} piece
- * @returns {boolean}
- */
-
 const history = createHistory();
 let showHints = true;
 
@@ -197,10 +175,6 @@ function update({ game, sq, x, y }) {
   game = { pieces, whiteTaken, blackTaken };
 }
 
-/**
- * @param {Array<Array<Piece | null>>} pieces
- * @param {Array<Array<Move | null>>} moves
- */
 function draw(game) {
   // Loop over pieces and draw them in their coordinates
   const piecesRoot = document.getElementById('pieces-root');
@@ -232,7 +206,6 @@ function draw(game) {
   });
 }
 
-/** @type Board */
 const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
@@ -249,30 +222,12 @@ let game = {
       createKnight(),
       createRook(),
     ],
-    [
-      createPawn(),
-      createPawn(),
-      createPawn(),
-      createPawn(),
-      createPawn(),
-      createPawn(),
-      createPawn(),
-      createPawn(),
-    ],
+    Array.from({ length: BOARD_SIZE }, () => createPawn()),
     Array.from({ length: BOARD_SIZE }, () => createEmpty()),
     Array.from({ length: BOARD_SIZE }, () => createEmpty()),
     Array.from({ length: BOARD_SIZE }, () => createEmpty()),
     Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    [
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-      createPawn(BLACK),
-    ],
+    Array.from({ length: BOARD_SIZE }, () => createPawn(BLACK)),
     [
       createRook(BLACK),
       createKnight(BLACK),
