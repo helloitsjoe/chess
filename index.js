@@ -21,6 +21,9 @@ import {
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
+// FIXME:
+// load/save doesn't work with taken pieces
+
 const history = createHistory();
 let showHints = true;
 
