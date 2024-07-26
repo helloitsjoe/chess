@@ -1,5 +1,5 @@
 import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
-import { isEmpty, rehydrate } from './utils.js';
+import { checkForCheck, isEmpty, rehydrate } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
 import {
@@ -24,13 +24,12 @@ import {
 // FIXME:
 // load/save doesn't work with taken pieces
 
-const history = createHistory();
 let showHints = true;
 
 function undo() {
-  const previous = history.getLastMove();
+  const previous = game.history.getLastMove();
   if (!previous) return;
-  turn = turn === WHITE ? BLACK : WHITE;
+  game.turn = game.turn === WHITE ? BLACK : WHITE;
   const { pieces: previousPieces, takenPiece } = previous;
   if (!isEmpty(takenPiece)) {
     const { color, id } = takenPiece;
@@ -66,8 +65,6 @@ document.getElementById('show-hints').onchange = (e) => {
   draw(game);
 };
 
-let turn = BLACK;
-
 function createBoard(board) {
   const boardDiv = document.createElement('div');
   boardDiv.classList.add('board');
@@ -101,7 +98,7 @@ function clearMoves(pieces) {
 
 function drawPieces({ pieces }) {
   document.getElementById('turn').innerText =
-    turn === WHITE ? "White's move" : "Black's move";
+    game.turn === WHITE ? "White's move" : "Black's move";
 
   const piecesContainer = document.createElement('div');
   piecesContainer.classList.add('pieces');
@@ -139,14 +136,14 @@ function drawPieces({ pieces }) {
 }
 
 function update({ game, sq, x, y }) {
-  const { pieces, whiteTaken, blackTaken } = game;
+  const { pieces, whiteTaken, blackTaken, turn, history } = game;
   if (sq.pendingMove) {
     // Move piece
     const { x: oldX, y: oldY } = sq.pendingMove;
     clearMoves(pieces);
 
     // TODO: Move this into getMoves?
-    // TODO: Handle getting pieces back
+    // TODO: Handle getting pieces back (promotion)
     const pieceToTake = pieces[y][x];
     if (!isEmpty(pieceToTake)) {
       if (pieceToTake.color === WHITE) {
@@ -162,8 +159,13 @@ function update({ game, sq, x, y }) {
     pieces[y][x] = pieces[oldY][oldX];
     pieces[oldY][oldX] = createEmpty();
 
-    turn = turn === WHITE ? BLACK : WHITE;
+    if (checkForCheck({ pieces, turn })) {
+      console.log('Check!');
+    }
+
+    game.turn = turn === WHITE ? BLACK : WHITE;
   } else {
+    // TODO: Make it impossible to put yourself in check
     clearMoves(pieces);
     if (sq.color === turn) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
@@ -175,7 +177,7 @@ function update({ game, sq, x, y }) {
     }
   }
 
-  game = { pieces, whiteTaken, blackTaken };
+  game = { ...game, pieces, whiteTaken, blackTaken, history };
 }
 
 function draw(game) {
@@ -244,6 +246,8 @@ let game = {
   ],
   whiteTaken: {},
   blackTaken: {},
+  history: createHistory(),
+  turn: BLACK,
 };
 
 document.getElementById('board-root').appendChild(createBoard(board));

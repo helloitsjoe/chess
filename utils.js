@@ -28,3 +28,27 @@ export function rehydrate(pieces) {
     }),
   );
 }
+
+export function checkForCheck({ pieces, turn }) {
+  const allMoves = [];
+  let kingPosition = {};
+
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      const piece = pieces[y][x];
+      if (piece.id === 'king' && piece.color !== turn) {
+        kingPosition = { x, y };
+      }
+      if (piece.id !== 'empty' && piece.color === turn) {
+        allMoves.push(piece.getMoves({ pieces, x, y }));
+      }
+    }
+  }
+
+  console.log('allMoves', allMoves.flat());
+  console.log('kingPosition', kingPosition);
+
+  return allMoves
+    .flat()
+    .some((move) => move.x === kingPosition.x && move.y === kingPosition.y);
+}

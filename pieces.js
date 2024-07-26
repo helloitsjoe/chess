@@ -1,6 +1,7 @@
 import { isEmpty } from './utils.js';
 import { BOARD_SIZE, WHITE } from './constants.js';
 
+// TODO: Check for check/checkmate before allowing move
 function makeGetRookMoves(color) {
   return ({ pieces, x, y }) => {
     const moves = [];
