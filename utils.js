@@ -10,7 +10,7 @@ import {
 
 export const isEmpty = (piece) => piece.id === 'empty';
 
-// getPieces functions aren't serialized when we save undo state
+// getMoves functions aren't serialized when we save undo state
 export function rehydrate(pieces) {
   const factoryMap = {
     pawn: createPawn,
