@@ -8,7 +8,7 @@ import {
   createEmpty,
 } from './pieces.js';
 
-export const isEmpty = (piece) => piece.id === 'empty';
+export const isEmpty = (piece) => piece?.id === 'empty';
 
 // getMoves functions aren't serialized when we save undo state
 export function rehydrate(pieces) {
@@ -51,4 +51,20 @@ export function checkForCheck({ pieces, turn }) {
   return allMoves
     .flat()
     .some((move) => move.x === kingPosition.x && move.y === kingPosition.y);
+}
+
+export function promote(color) {
+  const selection = prompt('Which would you like to promote to? Q, R, N, B');
+  switch (selection.toUpperCase()) {
+    case 'Q':
+      return createQueen(color);
+    case 'R':
+      return createRook(color);
+    case 'N':
+      return createKnight(color);
+    case 'B':
+      return createBishop(color);
+    default:
+      return promote(color);
+  }
 }

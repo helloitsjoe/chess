@@ -1,5 +1,5 @@
 import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
-import { checkForCheck, isEmpty, rehydrate } from './utils.js';
+import { checkForCheck, isEmpty, rehydrate, promote } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
 import {
@@ -139,7 +139,10 @@ function update({ game, sq, x, y }) {
   const { pieces, whiteTaken, blackTaken, turn, history } = game;
   if (sq.pendingMove) {
     // Move piece
-    const { x: oldX, y: oldY } = sq.pendingMove;
+    const { x: oldX, y: oldY, canPromote } = sq.pendingMove;
+    const oldPiece = pieces[oldY][oldX];
+    const newPiece = canPromote ? promote(oldPiece.color) : oldPiece;
+
     clearMoves(pieces);
 
     // TODO: Move this into getMoves?
@@ -156,7 +159,7 @@ function update({ game, sq, x, y }) {
     history.push(pieces, pieceToTake);
 
     // Make move
-    pieces[y][x] = pieces[oldY][oldX];
+    pieces[y][x] = newPiece;
     pieces[oldY][oldX] = createEmpty();
 
     if (checkForCheck({ pieces, turn })) {
@@ -171,7 +174,11 @@ function update({ game, sq, x, y }) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
       for (const { x: newX, y: newY } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
-          pieces[newY][newX].pendingMove = { x, y };
+          // TODO: Simplify this check
+          const canPromote =
+            (sq.id === 'pawn' && newY === 0 && sq.color === BLACK) ||
+            (newY === BOARD_SIZE - 1 && sq.color === WHITE);
+          pieces[newY][newX].pendingMove = { x, y, canPromote };
         }
       }
     }

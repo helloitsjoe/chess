@@ -141,21 +141,21 @@ export const createPawn = (color = WHITE) => ({
 
     // If a piece is not directly in front of the pawn, it can move
     // If the pawn is not in its starting position, it can move one square
-    if (isEmpty(pieces[newY][x])) {
+    if (isEmpty(pieces[newY]?.[x])) {
       moves.push({ x, y: newY });
       // If the pawn is in its starting position, it can move two squares
-      if (y === startY && isEmpty(pieces[newYStart][x])) {
+      if (y === startY && isEmpty(pieces[newYStart]?.[x])) {
         moves.push({ x, y: newYStart });
       }
     }
     // If a piece is diagonally in front of the pawn, it can take it
     // as long as the color is different
-    const leftPiece = pieces[newY][x + 1];
-    const rightPiece = pieces[newY][x - 1];
-    if (leftPiece && !isEmpty(leftPiece) && leftPiece.color !== color) {
+    const leftPiece = pieces[newY]?.[x + 1];
+    const rightPiece = pieces[newY]?.[x - 1];
+    if (!isEmpty(leftPiece) && leftPiece?.color !== color) {
       moves.push({ x: x + 1, y: newY });
     }
-    if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
+    if (!isEmpty(rightPiece) && rightPiece?.color !== color) {
       moves.push({ x: x - 1, y: newY });
     }
 
@@ -210,6 +210,7 @@ export const createBishop = (color = WHITE) => ({
 export const createKing = (color = WHITE) => ({
   id: 'king',
   color,
+  hasMoved: false,
   getMoves({ pieces, x, y }) {
     const moves = [];
 
@@ -223,6 +224,11 @@ export const createKing = (color = WHITE) => ({
       { x: x - 1, y: y - 1 },
       { x: x + 1, y: y - 1 },
     ];
+
+    // If no pieces between king and rook AND neither has moved yet, allow castle
+    // if (!pieces[y][x].hasMoved) {
+
+    // }
 
     for (const { x: newX, y: newY } of allMoves) {
       const newMove = pieces[newY]?.[newX];
