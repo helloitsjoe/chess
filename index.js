@@ -1,5 +1,5 @@
 import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
-import { checkForCheck, isEmpty, rehydrate, promote } from './utils.js';
+import { checkForCheck, isEmpty, rehydrate, promote, castle } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
 import {
@@ -139,9 +139,9 @@ function update({ game, sq, x, y }) {
   const { pieces, whiteTaken, blackTaken, turn, history } = game;
   if (sq.pendingMove) {
     // Move piece
-    const { x: oldX, y: oldY, canPromote } = sq.pendingMove;
+    const { x: oldX, y: oldY, type } = sq.pendingMove;
     const oldPiece = pieces[oldY][oldX];
-    const newPiece = canPromote ? promote(oldPiece.color) : oldPiece;
+    const newPiece = type === 'promote' ? promote(oldPiece.color) : oldPiece;
 
     clearMoves(pieces);
 
@@ -158,9 +158,16 @@ function update({ game, sq, x, y }) {
 
     history.push(pieces, pieceToTake);
 
+    newPiece.hasMoved = true;
+
     // Make move
     pieces[y][x] = newPiece;
+    pieces[y][x].hasMoved = true;
     pieces[oldY][oldX] = createEmpty();
+
+    if (type === 'castle') {
+      castle({ pieces, x, y });
+    }
 
     if (checkForCheck({ pieces, turn })) {
       console.log('Check!');
@@ -172,13 +179,17 @@ function update({ game, sq, x, y }) {
     clearMoves(pieces);
     if (sq.color === turn) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
-      for (const { x: newX, y: newY } of moveOptions) {
+      for (const { x: newX, y: newY, type } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
-          // TODO: Simplify this check
+          // TODO: Simplify this check and move to pieces.js
           const canPromote =
             (sq.id === 'pawn' && newY === 0 && sq.color === BLACK) ||
             (newY === BOARD_SIZE - 1 && sq.color === WHITE);
-          pieces[newY][newX].pendingMove = { x, y, canPromote };
+          pieces[newY][newX].pendingMove = {
+            x,
+            y,
+            type: canPromote ? 'promote' : type,
+          };
         }
       }
     }
@@ -228,8 +239,8 @@ let game = {
       createRook(),
       createKnight(),
       createBishop(),
-      createKing(),
       createQueen(),
+      createKing(),
       createBishop(),
       createKnight(),
       createRook(),

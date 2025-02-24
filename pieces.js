@@ -1,5 +1,5 @@
 import { isEmpty } from './utils.js';
-import { BOARD_SIZE, WHITE } from './constants.js';
+import { BLACK, BOARD_SIZE, WHITE } from './constants.js';
 
 // TODO: Check for check/checkmate before allowing move
 function makeGetRookMoves(color) {
@@ -163,9 +163,10 @@ export const createPawn = (color = WHITE) => ({
   },
 });
 
-export const createRook = (color = WHITE) => ({
+export const createRook = (color = WHITE, hasMoved = false) => ({
   id: 'rook',
   color,
+  hasMoved,
   getMoves: makeGetRookMoves(color),
 });
 
@@ -207,10 +208,10 @@ export const createBishop = (color = WHITE) => ({
   getMoves: makeGetBishopMoves(color),
 });
 
-export const createKing = (color = WHITE) => ({
+export const createKing = (color = WHITE, hasMoved = false) => ({
   id: 'king',
   color,
-  hasMoved: false,
+  hasMoved,
   getMoves({ pieces, x, y }) {
     const moves = [];
 
@@ -226,18 +227,40 @@ export const createKing = (color = WHITE) => ({
     ];
 
     // If no pieces between king and rook AND neither has moved yet, allow castle
-    // if (!pieces[y][x].hasMoved) {
+    if (!this.hasMoved) {
+      if (color === BLACK) {
+        if (x === 4 && y === BOARD_SIZE - 1) {
+          const kingsRook = pieces[BOARD_SIZE - 1][BOARD_SIZE - 1];
+          const queensRook = pieces[BOARD_SIZE - 1][0];
+          if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
+            allMoves.push({ x: x + 2, y, type: 'castle' });
+          }
+          if (queensRook.id === 'rook' && !queensRook.hasMoved) {
+            allMoves.push({ x: x - 2, y, type: 'castle' });
+          }
+        }
+      } else {
+        if (x === 4 && y === 0) {
+          const kingsRook = pieces[0][0];
+          const queensRook = pieces[0][BOARD_SIZE - 1];
+          if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
+            allMoves.push({ x: x - 2, y, type: 'castle' });
+          }
+          if (queensRook.id === 'rook' && !queensRook.hasMoved) {
+            allMoves.push({ x: x + 2, y, type: 'castle' });
+          }
+        }
+      }
+    }
 
-    // }
-
-    for (const { x: newX, y: newY } of allMoves) {
+    for (const { x: newX, y: newY, type } of allMoves) {
       const newMove = pieces[newY]?.[newX];
       if (!newMove) continue;
       if (isEmpty(newMove)) {
-        moves.push({ x: newX, y: newY });
+        moves.push({ x: newX, y: newY, type });
       } else {
         if (newMove.color !== color) {
-          moves.push({ x: newX, y: newY });
+          moves.push({ x: newX, y: newY, type });
         }
       }
     }

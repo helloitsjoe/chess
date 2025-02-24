@@ -1,3 +1,4 @@
+import { WHITE, BLACK } from './constants.js';
 import {
   createPawn,
   createRook,
@@ -24,7 +25,7 @@ export function rehydrate(pieces) {
   return pieces.map((row) =>
     row.map((piece) => {
       const factory = factoryMap[piece.id];
-      return factory ? factory(piece.color) : createEmpty();
+      return factory ? factory(piece.color, piece.hasMoved) : createEmpty();
     }),
   );
 }
@@ -66,5 +67,34 @@ export function promote(color) {
       return createBishop(color);
     default:
       return promote(color);
+  }
+}
+
+export function castle({ pieces, x, y }) {
+  const piece = pieces[y][x];
+  if (piece.color === BLACK) {
+    if (x === 6) {
+      const newRook = pieces[7][7];
+      newRook.hasMoved = true;
+      pieces[7][5] = newRook;
+      pieces[7][7] = createEmpty();
+    } else if (x === 2) {
+      const newRook = pieces[7][0];
+      newRook.hasMoved = true;
+      pieces[7][3] = newRook;
+      pieces[7][0] = createEmpty();
+    }
+  } else if (piece.color === WHITE) {
+    if (x === 2) {
+      const newRook = pieces[0][0];
+      newRook.hasMoved = true;
+      pieces[0][3] = newRook;
+      pieces[0][0] = createEmpty();
+    } else if (x === 6) {
+      const newRook = pieces[0][7];
+      newRook.hasMoved = true;
+      pieces[0][5] = newRook;
+      pieces[0][7] = createEmpty();
+    }
   }
 }
