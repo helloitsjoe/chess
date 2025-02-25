@@ -21,9 +21,6 @@ import {
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
-// FIXME:
-// load/save doesn't work with taken pieces
-
 let showHints = true;
 
 function undo() {
@@ -146,7 +143,6 @@ function update({ game, sq, x, y }) {
     clearMoves(pieces);
 
     // TODO: Move this into getMoves?
-    // TODO: Handle getting pieces back (promotion)
     const pieceToTake = pieces[y][x];
     if (!isEmpty(pieceToTake)) {
       if (pieceToTake.color === WHITE) {
@@ -181,15 +177,7 @@ function update({ game, sq, x, y }) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
       for (const { x: newX, y: newY, type } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
-          // TODO: Simplify this check and move to pieces.js
-          const canPromote =
-            (sq.id === 'pawn' && newY === 0 && sq.color === BLACK) ||
-            (newY === BOARD_SIZE - 1 && sq.color === WHITE);
-          pieces[newY][newX].pendingMove = {
-            x,
-            y,
-            type: canPromote ? 'promote' : type,
-          };
+          pieces[newY][newX].pendingMove = { x, y, type };
         }
       }
     }

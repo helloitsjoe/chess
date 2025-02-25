@@ -136,13 +136,15 @@ export const createPawn = (color = WHITE) => ({
     const startY = color === WHITE ? 1 : 6;
     const newY = y + 1 * direction;
     const newYStart = y + 2 * direction;
+    const canPromote = color === BLACK ? newY === 0 : newY === BOARD_SIZE - 1;
+    const type = canPromote ? 'promote' : 'normal';
 
     const moves = [];
 
     // If a piece is not directly in front of the pawn, it can move
     // If the pawn is not in its starting position, it can move one square
     if (isEmpty(pieces[newY]?.[x])) {
-      moves.push({ x, y: newY });
+      moves.push({ x, y: newY, type });
       // If the pawn is in its starting position, it can move two squares
       if (y === startY && isEmpty(pieces[newYStart]?.[x])) {
         moves.push({ x, y: newYStart });
@@ -153,10 +155,10 @@ export const createPawn = (color = WHITE) => ({
     const leftPiece = pieces[newY]?.[x + 1];
     const rightPiece = pieces[newY]?.[x - 1];
     if (!isEmpty(leftPiece) && leftPiece?.color !== color) {
-      moves.push({ x: x + 1, y: newY });
+      moves.push({ x: x + 1, y: newY, type });
     }
     if (!isEmpty(rightPiece) && rightPiece?.color !== color) {
-      moves.push({ x: x - 1, y: newY });
+      moves.push({ x: x - 1, y: newY, type });
     }
 
     return moves;
