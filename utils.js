@@ -30,17 +30,32 @@ export function rehydrate(pieces) {
   );
 }
 
-export function checkForCheck({ pieces, turn }) {
+export function putSelfInCheck({
+  pieces: origPieces,
+  turn,
+  x: oldX,
+  y: oldY,
+  newX,
+  newY,
+}) {
+  const pieces = [...origPieces.map((row) => [...row])];
+
+  const movingPiece = pieces[oldY][oldX];
+  pieces[newY][newX] = movingPiece;
+  pieces[oldY][oldX] = createEmpty();
+
   const allMoves = [];
   let kingPosition = {};
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = pieces[y][x];
-      if (piece.id === 'king' && piece.color !== turn) {
+      if (piece.id === 'king' && piece.color === turn) {
         kingPosition = { x, y };
       }
-      if (piece.id !== 'empty' && piece.color === turn) {
+      if (piece.id !== 'empty' && piece.color !== turn) {
+        console.log('piece.id', piece.id);
+        console.log('piece.getMoves()', piece.getMoves({ pieces, x, y }));
         allMoves.push(piece.getMoves({ pieces, x, y }));
       }
     }
@@ -49,9 +64,11 @@ export function checkForCheck({ pieces, turn }) {
   console.log('allMoves', allMoves.flat());
   console.log('kingPosition', kingPosition);
 
-  return allMoves
+  const illegalMoves = allMoves
     .flat()
     .some((move) => move.x === kingPosition.x && move.y === kingPosition.y);
+  console.log('isCheck', illegalMoves);
+  return illegalMoves;
 }
 
 export function promote(color) {

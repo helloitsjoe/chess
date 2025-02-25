@@ -1,5 +1,11 @@
-import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
-import { checkForCheck, isEmpty, rehydrate, promote, castle } from './utils.js';
+import { WHITE, BLACK, BOARD_SIZE, Type } from './constants.js';
+import {
+  putSelfInCheck,
+  isEmpty,
+  rehydrate,
+  promote,
+  castle,
+} from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
 import {
@@ -50,6 +56,7 @@ document.getElementById('save-button').onclick = () => {
   localStorage.setItem('chess', JSON.stringify(game));
 };
 
+// TODO: pieces can't move after rehydration?
 document.getElementById('load-button').onclick = () => {
   game = JSON.parse(localStorage.getItem('chess'));
   game.pieces = rehydrate(game.pieces);
@@ -112,7 +119,11 @@ function drawPieces({ pieces }) {
 
         if (showHints) {
           if (sq.pendingMove) {
-            pieceEl.classList.add('show-move');
+            const className =
+              sq.pendingMove.type === Type.SELF_CHECK
+                ? 'bad-move'
+                : 'show-move';
+            pieceEl.classList.add(className);
           } else {
             pieceEl.classList.remove('show-move');
           }
@@ -138,7 +149,7 @@ function update({ game, sq, x, y }) {
     // Move piece
     const { x: oldX, y: oldY, type } = sq.pendingMove;
     const oldPiece = pieces[oldY][oldX];
-    const newPiece = type === 'promote' ? promote(oldPiece.color) : oldPiece;
+    const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
 
     clearMoves(pieces);
 
@@ -158,25 +169,28 @@ function update({ game, sq, x, y }) {
 
     // Make move
     pieces[y][x] = newPiece;
-    pieces[y][x].hasMoved = true;
     pieces[oldY][oldX] = createEmpty();
 
-    if (type === 'castle') {
+    if (type === Type.CASTLE) {
       castle({ pieces, x, y });
     }
 
-    if (checkForCheck({ pieces, turn })) {
-      console.log('Check!');
-    }
+    // TODO: Make this optional
+    // if (type === Type.SELF_CHECK) {
+    //   undo();
+    // }
 
-    game.turn = turn === WHITE ? BLACK : WHITE;
+    game.turn = game.turn === WHITE ? BLACK : WHITE;
   } else {
     // TODO: Make it impossible to put yourself in check
     clearMoves(pieces);
     if (sq.color === turn) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
-      for (const { x: newX, y: newY, type } of moveOptions) {
+      for (const { x: newX, y: newY, type: newType } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
+          const type = putSelfInCheck({ pieces, turn, x, y, newX, newY })
+            ? Type.SELF_CHECK
+            : newType;
           pieces[newY][newX].pendingMove = { x, y, type };
         }
       }
@@ -253,7 +267,7 @@ let game = {
   whiteTaken: {},
   blackTaken: {},
   history: createHistory(),
-  turn: BLACK,
+  turn: WHITE,
 };
 
 document.getElementById('board-root').appendChild(createBoard(board));

@@ -1,5 +1,5 @@
 import { isEmpty } from './utils.js';
-import { BLACK, BOARD_SIZE, WHITE } from './constants.js';
+import { BLACK, BOARD_SIZE, WHITE, Type } from './constants.js';
 
 // TODO: Check for check/checkmate before allowing move
 function makeGetRookMoves(color) {
@@ -137,7 +137,7 @@ export const createPawn = (color = WHITE) => ({
     const newY = y + 1 * direction;
     const newYStart = y + 2 * direction;
     const canPromote = color === BLACK ? newY === 0 : newY === BOARD_SIZE - 1;
-    const type = canPromote ? 'promote' : 'normal';
+    const type = canPromote ? Type.PROMOTE : Type.NORMAL;
 
     const moves = [];
 
@@ -235,7 +235,7 @@ export const createKing = (color = WHITE, hasMoved = false) => ({
           const kingsRook = pieces[BOARD_SIZE - 1][BOARD_SIZE - 1];
           const queensRook = pieces[BOARD_SIZE - 1][0];
           if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
-            allMoves.push({ x: x + 2, y, type: 'castle' });
+            allMoves.push({ x: x + 2, y, type: Type.CASTLE });
           }
           if (queensRook.id === 'rook' && !queensRook.hasMoved) {
             allMoves.push({ x: x - 2, y, type: 'castle' });
@@ -246,10 +246,10 @@ export const createKing = (color = WHITE, hasMoved = false) => ({
           const kingsRook = pieces[0][0];
           const queensRook = pieces[0][BOARD_SIZE - 1];
           if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
-            allMoves.push({ x: x - 2, y, type: 'castle' });
+            allMoves.push({ x: x - 2, y, type: Type.CASTLE });
           }
           if (queensRook.id === 'rook' && !queensRook.hasMoved) {
-            allMoves.push({ x: x + 2, y, type: 'castle' });
+            allMoves.push({ x: x + 2, y, type: Type.CASTLE });
           }
         }
       }

@@ -52,6 +52,10 @@ html, body {
     background-color: hsla(128, 100%, 50%, 0.5);
 }
 
+.bad-move {
+    background-color: hsla(0, 100%, 50%, 0.5);
+}
+
 .piece-black {
     color: black;
     text-shadow: 
