@@ -20,14 +20,13 @@ import {
 
 // TODO:
 // Check for check
-// Disallow move to check
 // Check for checkmate
 // Check for stalemate?
-// Blocked squares red?
 // Specialty moves (castling, en passant)
 // Drag-n-drop
 
 let showHints = true;
+let lockCheck = true;
 
 function undo() {
   const previous = game.history.getLastMove();
@@ -66,6 +65,12 @@ document.getElementById('load-button').onclick = () => {
 document.getElementById('show-hints').onchange = (e) => {
   showHints = !showHints;
   e.target.checked = showHints;
+  draw(game);
+};
+
+document.getElementById('lock-check').onchange = (e) => {
+  lockCheck = !lockCheck;
+  e.target.checked = lockCheck;
   draw(game);
 };
 
@@ -175,19 +180,19 @@ function update({ game, sq, x, y }) {
       castle({ pieces, x, y });
     }
 
-    // TODO: Make this optional
-    // if (type === Type.SELF_CHECK) {
-    //   undo();
-    // }
+    if (lockCheck && type === Type.SELF_CHECK) {
+      undo();
+    }
 
     game.turn = game.turn === WHITE ? BLACK : WHITE;
   } else {
-    // TODO: Make it impossible to put yourself in check
     clearMoves(pieces);
     if (sq.color === turn) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
       for (const { x: newX, y: newY, type: newType } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
+          // TODO: Also check for checkmate/stalemate
+          // TODO: Also make king square is red when in check
           const type = putSelfInCheck({ pieces, turn, x, y, newX, newY })
             ? Type.SELF_CHECK
             : newType;
