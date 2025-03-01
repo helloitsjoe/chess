@@ -1,6 +1,6 @@
 import { WHITE, BLACK, BOARD_SIZE, Type } from './constants.js';
 import {
-  getIsSelfCheck,
+  putsSelfInCheck,
   getIsCheck,
   isEmpty,
   rehydrate,
@@ -60,6 +60,7 @@ document.getElementById('save-button').onclick = () => {
 document.getElementById('load-button').onclick = () => {
   game = JSON.parse(localStorage.getItem('chess'));
   game.pieces = rehydrate(game.pieces);
+  game.history = createHistory();
   draw(game);
 };
 
@@ -201,7 +202,7 @@ function update({ game, sq, x, y }) {
       for (const { x: newX, y: newY, type: newType } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
           // TODO: Also check for checkmate/stalemate
-          const isCheck = getIsSelfCheck({
+          const isCheck = putsSelfInCheck({
             pieces,
             turn,
             x,
@@ -217,7 +218,6 @@ function update({ game, sq, x, y }) {
   }
 
   const kingCoords = getIsCheck({ pieces, turn });
-  console.log('kingCoords', kingCoords);
   const king = pieces[kingCoords.y][kingCoords.x];
   king.inCheck = kingCoords.isCheck;
 

@@ -30,7 +30,8 @@ export function rehydrate(pieces) {
   );
 }
 
-export function getIsSelfCheck({
+// TODO: Consolidate this with getIsCheck. Can use pendingMove instead of new/old?
+export function putsSelfInCheck({
   pieces: origPieces,
   turn,
   x: oldX,
@@ -54,8 +55,6 @@ export function getIsSelfCheck({
         kingCoords = { x, y };
       }
       if (piece.id !== 'empty' && piece.color !== turn) {
-        // console.log('piece.id', piece.id);
-        // console.log('piece.getMoves()', piece.getMoves({ pieces, x, y }));
         allMoves.push(piece.getMoves({ pieces, x, y }));
       }
     }
@@ -83,10 +82,8 @@ export function getIsCheck({ pieces: origPieces, turn }) {
       const piece = pieces[y][x];
       if (piece.id === 'king' && piece.color !== turn) {
         kingCoords = { x, y };
-        console.log(' kingCoords', kingCoords);
       }
       if (piece.id !== 'empty' && piece.color === turn) {
-        console.log(piece.color, piece.id, x, y);
         allMoves.push(piece.getMoves({ pieces, x, y }));
       }
     }
