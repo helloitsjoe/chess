@@ -214,6 +214,7 @@ export const createKing = (color = WHITE, hasMoved = false) => ({
   id: 'king',
   color,
   hasMoved,
+  inCheck: false,
   getMoves({ pieces, x, y }) {
     const moves = [];
 

@@ -30,7 +30,7 @@ export function rehydrate(pieces) {
   );
 }
 
-export function putSelfInCheck({
+export function getIsSelfCheck({
   pieces: origPieces,
   turn,
   x: oldX,
@@ -45,30 +45,58 @@ export function putSelfInCheck({
   pieces[oldY][oldX] = createEmpty();
 
   const allMoves = [];
-  let kingPosition = {};
+  let kingCoords = {};
 
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = pieces[y][x];
       if (piece.id === 'king' && piece.color === turn) {
-        kingPosition = { x, y };
+        kingCoords = { x, y };
       }
       if (piece.id !== 'empty' && piece.color !== turn) {
-        console.log('piece.id', piece.id);
-        console.log('piece.getMoves()', piece.getMoves({ pieces, x, y }));
+        // console.log('piece.id', piece.id);
+        // console.log('piece.getMoves()', piece.getMoves({ pieces, x, y }));
         allMoves.push(piece.getMoves({ pieces, x, y }));
       }
     }
   }
 
-  console.log('allMoves', allMoves.flat());
-  console.log('kingPosition', kingPosition);
+  // console.log('allMoves', allMoves.flat());
+  // console.log('kingPosition', kingCoords);
 
-  const illegalMoves = allMoves
+  const isCheck = allMoves
     .flat()
-    .some((move) => move.x === kingPosition.x && move.y === kingPosition.y);
-  console.log('isCheck', illegalMoves);
-  return illegalMoves;
+    .some((move) => move.x === kingCoords.x && move.y === kingCoords.y);
+  // console.log('isCheck', isCheck);
+  // return { isCheck, kingCoords };
+  return isCheck;
+}
+
+export function getIsCheck({ pieces: origPieces, turn }) {
+  const pieces = [...origPieces.map((row) => [...row])];
+
+  const allMoves = [];
+  let kingCoords = {};
+
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      const piece = pieces[y][x];
+      if (piece.id === 'king' && piece.color !== turn) {
+        kingCoords = { x, y };
+        console.log(' kingCoords', kingCoords);
+      }
+      if (piece.id !== 'empty' && piece.color === turn) {
+        console.log(piece.color, piece.id, x, y);
+        allMoves.push(piece.getMoves({ pieces, x, y }));
+      }
+    }
+  }
+
+  const isCheck = allMoves
+    .flat()
+    .some((move) => move.x === kingCoords.x && move.y === kingCoords.y);
+
+  return { ...kingCoords, isCheck };
 }
 
 export function promote(color) {

@@ -1,6 +1,7 @@
 import { WHITE, BLACK, BOARD_SIZE, Type } from './constants.js';
 import {
-  putSelfInCheck,
+  getIsSelfCheck,
+  getIsCheck,
   isEmpty,
   rehydrate,
   promote,
@@ -123,6 +124,14 @@ function drawPieces({ pieces }) {
         }
 
         if (showHints) {
+          if (sq.id === 'king') {
+            if (sq.inCheck && sq.color === game.turn) {
+              pieceEl.classList.add('bad-move');
+            } else {
+              pieceEl.classList.remove('show-move');
+            }
+          }
+
           if (sq.pendingMove) {
             const className =
               sq.pendingMove.type === Type.SELF_CHECK
@@ -192,15 +201,25 @@ function update({ game, sq, x, y }) {
       for (const { x: newX, y: newY, type: newType } of moveOptions) {
         if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
           // TODO: Also check for checkmate/stalemate
-          // TODO: Also make king square is red when in check
-          const type = putSelfInCheck({ pieces, turn, x, y, newX, newY })
-            ? Type.SELF_CHECK
-            : newType;
+          const isCheck = getIsSelfCheck({
+            pieces,
+            turn,
+            x,
+            y,
+            newX,
+            newY,
+          });
+          const type = isCheck ? Type.SELF_CHECK : newType;
           pieces[newY][newX].pendingMove = { x, y, type };
         }
       }
     }
   }
+
+  const kingCoords = getIsCheck({ pieces, turn });
+  console.log('kingCoords', kingCoords);
+  const king = pieces[kingCoords.y][kingCoords.x];
+  king.inCheck = kingCoords.isCheck;
 
   game = { ...game, pieces, whiteTaken, blackTaken, history };
 }
