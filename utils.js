@@ -55,19 +55,15 @@ export function putsSelfInCheck({
         kingCoords = { x, y };
       }
       if (piece.id !== 'empty' && piece.color !== turn) {
-        allMoves.push(piece.getMoves({ pieces, x, y }));
+        allMoves.push(...piece.getMoves({ pieces, x, y }));
       }
     }
   }
 
-  // console.log('allMoves', allMoves.flat());
-  // console.log('kingPosition', kingCoords);
+  const isCheck = allMoves.some(
+    (move) => move.x === kingCoords.x && move.y === kingCoords.y,
+  );
 
-  const isCheck = allMoves
-    .flat()
-    .some((move) => move.x === kingCoords.x && move.y === kingCoords.y);
-  // console.log('isCheck', isCheck);
-  // return { isCheck, kingCoords };
   return isCheck;
 }
 
@@ -84,14 +80,14 @@ export function getIsCheck({ pieces: origPieces, turn }) {
         kingCoords = { x, y };
       }
       if (piece.id !== 'empty' && piece.color === turn) {
-        allMoves.push(piece.getMoves({ pieces, x, y }));
+        allMoves.push(...piece.getMoves({ pieces, x, y }));
       }
     }
   }
 
-  const isCheck = allMoves
-    .flat()
-    .some((move) => move.x === kingCoords.x && move.y === kingCoords.y);
+  const isCheck = allMoves.some(
+    (move) => move.x === kingCoords.x && move.y === kingCoords.y,
+  );
 
   return { ...kingCoords, isCheck };
 }

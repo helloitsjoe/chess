@@ -20,10 +20,9 @@ import {
 } from './pieces.js';
 
 // TODO:
-// Check for check
 // Check for checkmate
-// Check for stalemate?
-// Specialty moves (castling, en passant)
+// Check for stalemate
+// En passant
 // Drag-n-drop
 
 let showHints = true;
@@ -56,7 +55,6 @@ document.getElementById('save-button').onclick = () => {
   localStorage.setItem('chess', JSON.stringify(game));
 };
 
-// TODO: pieces can't move after rehydration?
 document.getElementById('load-button').onclick = () => {
   game = JSON.parse(localStorage.getItem('chess'));
   game.pieces = rehydrate(game.pieces);
@@ -98,7 +96,7 @@ function createBoard(board) {
   return boardDiv;
 }
 
-function clearMoves(pieces) {
+function clearPending(pieces) {
   for (let i = 0; i < pieces.length; i++) {
     const row = pieces[i];
     for (let j = 0; j < row.length; j++) {
@@ -166,7 +164,7 @@ function update({ game, sq, x, y }) {
     const oldPiece = pieces[oldY][oldX];
     const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
 
-    clearMoves(pieces);
+    clearPending(pieces);
 
     // TODO: Move this into getMoves?
     const pieceToTake = pieces[y][x];
@@ -196,7 +194,7 @@ function update({ game, sq, x, y }) {
 
     game.turn = game.turn === WHITE ? BLACK : WHITE;
   } else {
-    clearMoves(pieces);
+    clearPending(pieces);
     if (sq.color === turn) {
       const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
       for (const { x: newX, y: newY, type: newType } of moveOptions) {
@@ -218,8 +216,7 @@ function update({ game, sq, x, y }) {
   }
 
   const kingCoords = getIsCheck({ pieces, turn });
-  const king = pieces[kingCoords.y][kingCoords.x];
-  king.inCheck = kingCoords.isCheck;
+  pieces[kingCoords.y][kingCoords.x].inCheck = kingCoords.isCheck;
 
   game = { ...game, pieces, whiteTaken, blackTaken, history };
 }
