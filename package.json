@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"No tests yet\"",
+    "test": "vitest",
     "dev": "yarn http-server .",
     "lint": "eslint ."
   },
@@ -22,6 +22,7 @@
     "eslint": "9.x",
     "globals": "^15.8.0",
     "http-server": "^14.1.1",
-    "prettier": "^3.3.2"
+    "prettier": "^3.3.2",
+    "vitest": "^3.0.7"
   }
 }

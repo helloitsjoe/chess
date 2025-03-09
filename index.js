@@ -9,15 +9,7 @@ import {
 } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
-import {
-  createPawn,
-  createRook,
-  createKnight,
-  createBishop,
-  createKing,
-  createQueen,
-  createEmpty,
-} from './pieces.js';
+import { createEmpty, createPieces } from './pieces.js';
 
 // TODO:
 // Check for checkmate
@@ -256,41 +248,17 @@ const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
 
-let game = {
-  pieces: [
-    [
-      createRook(),
-      createKnight(),
-      createBishop(),
-      createQueen(),
-      createKing(),
-      createBishop(),
-      createKnight(),
-      createRook(),
-    ],
-    Array.from({ length: BOARD_SIZE }, () => createPawn()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createPawn(BLACK)),
-    [
-      createRook(BLACK),
-      createKnight(BLACK),
-      createBishop(BLACK),
-      createQueen(BLACK),
-      createKing(BLACK),
-      createBishop(BLACK),
-      createKnight(BLACK),
-      createRook(BLACK),
-    ],
-  ],
-  whiteTaken: {},
-  blackTaken: {},
-  history: createHistory(),
-  turn: WHITE,
-};
+function createGame() {
+  return {
+    pieces: createPieces(),
+    whiteTaken: {},
+    blackTaken: {},
+    history: createHistory(),
+    turn: WHITE,
+  };
+}
 
 document.getElementById('board-root').appendChild(createBoard(board));
 
+let game = createGame();
 draw(game);

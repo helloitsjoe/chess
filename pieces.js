@@ -147,17 +147,17 @@ export const createPawn = (color = WHITE) => ({
       moves.push({ x, y: newY, type });
       // If the pawn is in its starting position, it can move two squares
       if (y === startY && isEmpty(pieces[newYStart]?.[x])) {
-        moves.push({ x, y: newYStart });
+        moves.push({ x, y: newYStart, type });
       }
     }
     // If a piece is diagonally in front of the pawn, it can take it
     // as long as the color is different
     const leftPiece = pieces[newY]?.[x + 1];
     const rightPiece = pieces[newY]?.[x - 1];
-    if (!isEmpty(leftPiece) && leftPiece?.color !== color) {
+    if (leftPiece && !isEmpty(leftPiece) && leftPiece.color !== color) {
       moves.push({ x: x + 1, y: newY, type });
     }
-    if (!isEmpty(rightPiece) && rightPiece?.color !== color) {
+    if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
       moves.push({ x: x - 1, y: newY, type });
     }
 
@@ -282,3 +282,34 @@ export const createQueen = (color = WHITE) => ({
     ];
   },
 });
+
+export function createPieces() {
+  return [
+    [
+      createRook(),
+      createKnight(),
+      createBishop(),
+      createQueen(),
+      createKing(),
+      createBishop(),
+      createKnight(),
+      createRook(),
+    ],
+    Array.from({ length: BOARD_SIZE }, () => createPawn()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createPawn(BLACK)),
+    [
+      createRook(BLACK),
+      createKnight(BLACK),
+      createBishop(BLACK),
+      createQueen(BLACK),
+      createKing(BLACK),
+      createBishop(BLACK),
+      createKnight(BLACK),
+      createRook(BLACK),
+    ],
+  ];
+}
