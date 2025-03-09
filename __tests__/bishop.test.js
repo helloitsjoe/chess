@@ -9,7 +9,7 @@ describe('bishop', () => {
     name       | color
     ${'black'} | ${BLACK}
     ${'white'} | ${WHITE}
-  `('creates a name bishop', ({ color }) => {
+  `('creates a $name bishop', ({ color }) => {
     expect(createBishop(color)).toEqual({
       id: 'bishop',
       color,
