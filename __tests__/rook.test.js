@@ -20,7 +20,7 @@ describe('rook', () => {
 
   it('can move down row/column', () => {
     const pieces = createEmptyBoard();
-    const rook = createRook();
+    const rook = createRook(WHITE);
     const [x, y] = [3, 3];
     pieces[y][x] = rook;
     const moves = rook.getMoves({ pieces, x, y });
@@ -49,11 +49,11 @@ describe('rook', () => {
     // ....
     // .R..
     const pieces = createEmptyBoard();
-    const rook = createRook();
+    const rook = createRook(WHITE);
     const [x, y] = [1, 1];
     pieces[y][x] = rook;
-    pieces[1][3] = createRook();
-    pieces[3][1] = createRook();
+    pieces[1][3] = createRook(WHITE);
+    pieces[3][1] = createRook(WHITE);
     const moves = rook.getMoves({ pieces, x, y });
     const expectedMoves = [
       { x: 1, y: 0 },
@@ -70,7 +70,7 @@ describe('rook', () => {
     // ....
     // .R..
     const pieces = createEmptyBoard();
-    const rook = createRook();
+    const rook = createRook(WHITE);
     const [x, y] = [1, 1];
     pieces[y][x] = rook;
     pieces[1][3] = createRook(BLACK);

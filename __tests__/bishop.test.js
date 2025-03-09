@@ -19,7 +19,7 @@ describe('bishop', () => {
 
   it('can move diagonally', () => {
     const pieces = createEmptyBoard();
-    const bishop = createBishop();
+    const bishop = createBishop(WHITE);
     const [x, y] = [3, 3];
     pieces[y][x] = bishop;
     const moves = bishop.getMoves({ pieces, x, y });
@@ -43,10 +43,10 @@ describe('bishop', () => {
 
   it('is blocked by same color', () => {
     const pieces = createEmptyBoard();
-    const bishop = createBishop();
+    const bishop = createBishop(WHITE);
     const [x, y] = [1, 1];
     pieces[y][x] = bishop;
-    pieces[2][2] = createBishop();
+    pieces[2][2] = createBishop(WHITE);
     const moves = bishop.getMoves({ pieces, x, y });
     const expectedMoves = [
       { x: 0, y: 0 },
@@ -58,7 +58,7 @@ describe('bishop', () => {
 
   it('is blocked by opposite color (but can take)', () => {
     const pieces = createEmptyBoard();
-    const bishop = createBishop();
+    const bishop = createBishop(WHITE);
     const [x, y] = [1, 1];
     pieces[y][x] = bishop;
     pieces[2][2] = createBishop(BLACK);

@@ -17,10 +17,10 @@ describe('history', () => {
 
   it('push/getLastMove work', () => {
     const pieces = [
-      [createPawn(), createPawn(BLACK)],
+      [createPawn(WHITE), createPawn(BLACK)],
       [createEmpty(), createEmpty()],
     ];
-    const takenPiece = createPawn();
+    const takenPiece = createPawn(WHITE);
 
     const history = createHistory();
     expect(history.getLastMove()).toBeNull();

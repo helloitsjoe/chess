@@ -21,7 +21,7 @@ describe('pawn', () => {
   describe('WHITE', () => {
     it('can move one or two spaces from start square', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [0, 1];
       pieces[y][x] = pawn;
       const moves = pawn.getMoves({ pieces, x, y });
@@ -33,7 +33,7 @@ describe('pawn', () => {
 
     it('can move only one space from non-start square', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [0, 2];
       pieces[y][x] = pawn;
       const moves = pawn.getMoves({ pieces, x, y });
@@ -42,17 +42,17 @@ describe('pawn', () => {
 
     it('is blocked by same color', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [0, 2];
       pieces[y][x] = pawn;
-      pieces[3][0] = createPawn();
+      pieces[3][0] = createPawn(WHITE);
       const moves = pawn.getMoves({ pieces, x, y });
       expect(moves).toEqual([]);
     });
 
     it('is blocked by opposite color', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [0, 2];
       pieces[y][x] = pawn;
       pieces[3][0] = createPawn(BLACK);
@@ -62,7 +62,7 @@ describe('pawn', () => {
 
     it('can move diagonally when opponent piece is there', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [2, 2];
 
       pieces[y][x] = pawn;
@@ -84,7 +84,7 @@ describe('pawn', () => {
 
     it('promotes', () => {
       const pieces = createEmptyBoard();
-      const pawn = createPawn();
+      const pawn = createPawn(WHITE);
       const [x, y] = [0, 6];
       pieces[y][x] = pawn;
       const moves = pawn.getMoves({ pieces, x, y });
@@ -129,7 +129,7 @@ describe('pawn', () => {
       const pawn = createPawn(BLACK);
       const [x, y] = [0, 2];
       pieces[y][x] = pawn;
-      pieces[1][0] = createPawn();
+      pieces[1][0] = createPawn(WHITE);
       const moves = pawn.getMoves({ pieces, x, y });
       expect(moves).toEqual([]);
     });
@@ -139,8 +139,8 @@ describe('pawn', () => {
       const pawn = createPawn(BLACK);
       const [x, y] = [2, 2];
       pieces[y][x] = pawn;
-      pieces[1][1] = createPawn();
-      pieces[3][3] = createPawn(); // Pawn behind should not trigger diagonal
+      pieces[1][1] = createPawn(WHITE);
+      pieces[3][3] = createPawn(WHITE); // Pawn behind should not trigger diagonal
 
       let moves = pawn.getMoves({ pieces, x, y });
       const straightMove = { x: 2, y: 1, type: 'normal' };
@@ -149,7 +149,7 @@ describe('pawn', () => {
 
       // Move black pawn to other diagonal
       pieces[1][1] = createEmpty();
-      pieces[1][3] = createPawn();
+      pieces[1][3] = createPawn(WHITE);
       const otherDiagonalMove = { x: 3, y: 1, type: 'normal' };
       moves = pawn.getMoves({ pieces, x, y });
       expect(moves).toEqual([straightMove, otherDiagonalMove]);

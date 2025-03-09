@@ -128,7 +128,7 @@ function makeGetBishopMoves(color) {
 // Pieces
 export const createEmpty = () => ({ id: 'empty' });
 
-export const createPawn = (color = WHITE) => ({
+export const createPawn = (color) => ({
   id: 'pawn',
   color,
   getMoves({ pieces, x, y }) {
@@ -165,14 +165,14 @@ export const createPawn = (color = WHITE) => ({
   },
 });
 
-export const createRook = (color = WHITE, hasMoved = false) => ({
+export const createRook = (color, hasMoved = false) => ({
   id: 'rook',
   color,
   hasMoved,
   getMoves: makeGetRookMoves(color),
 });
 
-export const createKnight = (color = WHITE) => ({
+export const createKnight = (color) => ({
   id: 'knight',
   color,
   getMoves({ pieces, x, y }) {
@@ -204,13 +204,13 @@ export const createKnight = (color = WHITE) => ({
   },
 });
 
-export const createBishop = (color = WHITE) => ({
+export const createBishop = (color) => ({
   id: 'bishop',
   color,
   getMoves: makeGetBishopMoves(color),
 });
 
-export const createKing = (color = WHITE, hasMoved = false) => ({
+export const createKing = (color, hasMoved = false) => ({
   id: 'king',
   color,
   hasMoved,
@@ -272,7 +272,7 @@ export const createKing = (color = WHITE, hasMoved = false) => ({
   },
 });
 
-export const createQueen = (color = WHITE) => ({
+export const createQueen = (color) => ({
   id: 'queen',
   color,
   getMoves({ pieces, x, y }) {
@@ -286,20 +286,20 @@ export const createQueen = (color = WHITE) => ({
 export function createPieces() {
   return [
     [
-      createRook(),
-      createKnight(),
-      createBishop(),
-      createQueen(),
-      createKing(),
-      createBishop(),
-      createKnight(),
-      createRook(),
+      createRook(WHITE),
+      createKnight(WHITE),
+      createBishop(WHITE),
+      createQueen(WHITE),
+      createKing(WHITE),
+      createBishop(WHITE),
+      createKnight(WHITE),
+      createRook(WHITE),
     ],
-    Array.from({ length: BOARD_SIZE }, () => createPawn()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+    Array.from({ length: BOARD_SIZE }, () => createPawn(WHITE)),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty(WHITE)),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty(WHITE)),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty(WHITE)),
+    Array.from({ length: BOARD_SIZE }, () => createEmpty(WHITE)),
     Array.from({ length: BOARD_SIZE }, () => createPawn(BLACK)),
     [
       createRook(BLACK),
