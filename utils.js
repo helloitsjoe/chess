@@ -1,4 +1,4 @@
-import { WHITE, BLACK } from './constants.js';
+import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
 import {
   createPawn,
   createRook,
@@ -135,4 +135,10 @@ export function castle({ pieces, x, y }) {
       pieces[0][7] = createEmpty();
     }
   }
+}
+
+export function createEmptyBoard() {
+  return Array.from({ length: BOARD_SIZE }, () =>
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+  );
 }
