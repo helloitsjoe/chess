@@ -1,5 +1,7 @@
 import { isEmpty } from './utils.js';
-import { BLACK, BOARD_SIZE, WHITE, Type } from './constants.js';
+import { BLACK, BOARD_SIZE, WHITE, Type, Pieces } from './constants.js';
+
+const { EMPTY, KING, QUEEN, ROOK, PAWN, KNIGHT, BISHOP } = Pieces;
 
 // TODO: Check for check/checkmate before allowing move
 function makeGetRookMoves(color) {
@@ -126,10 +128,10 @@ function makeGetBishopMoves(color) {
 }
 
 // Pieces
-export const createEmpty = () => ({ id: 'empty' });
+export const createEmpty = () => ({ id: EMPTY });
 
 export const createPawn = (color) => ({
-  id: 'pawn',
+  id: PAWN,
   color,
   getMoves({ pieces, x, y }) {
     const direction = color === WHITE ? 1 : -1;
@@ -166,14 +168,14 @@ export const createPawn = (color) => ({
 });
 
 export const createRook = (color, hasMoved = false) => ({
-  id: 'rook',
+  id: ROOK,
   color,
   hasMoved,
   getMoves: makeGetRookMoves(color),
 });
 
 export const createKnight = (color) => ({
-  id: 'knight',
+  id: KNIGHT,
   color,
   getMoves({ pieces, x, y }) {
     const moves = [];
@@ -205,13 +207,13 @@ export const createKnight = (color) => ({
 });
 
 export const createBishop = (color) => ({
-  id: 'bishop',
+  id: BISHOP,
   color,
   getMoves: makeGetBishopMoves(color),
 });
 
 export const createKing = (color, hasMoved = false) => ({
-  id: 'king',
+  id: KING,
   color,
   hasMoved,
   inCheck: false,
@@ -235,10 +237,10 @@ export const createKing = (color, hasMoved = false) => ({
         if (x === 4 && y === BOARD_SIZE - 1) {
           const kingsRook = pieces[BOARD_SIZE - 1][BOARD_SIZE - 1];
           const queensRook = pieces[BOARD_SIZE - 1][0];
-          if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
+          if (kingsRook.id === ROOK && !kingsRook.hasMoved) {
             allMoves.push({ x: x + 2, y, type: Type.CASTLE });
           }
-          if (queensRook.id === 'rook' && !queensRook.hasMoved) {
+          if (queensRook.id === ROOK && !queensRook.hasMoved) {
             allMoves.push({ x: x - 2, y, type: Type.CASTLE });
           }
         }
@@ -246,10 +248,10 @@ export const createKing = (color, hasMoved = false) => ({
         if (x === 4 && y === 0) {
           const kingsRook = pieces[0][0];
           const queensRook = pieces[0][BOARD_SIZE - 1];
-          if (kingsRook.id === 'rook' && !kingsRook.hasMoved) {
+          if (kingsRook.id === ROOK && !kingsRook.hasMoved) {
             allMoves.push({ x: x - 2, y, type: Type.CASTLE });
           }
-          if (queensRook.id === 'rook' && !queensRook.hasMoved) {
+          if (queensRook.id === ROOK && !queensRook.hasMoved) {
             allMoves.push({ x: x + 2, y, type: Type.CASTLE });
           }
         }
@@ -273,7 +275,7 @@ export const createKing = (color, hasMoved = false) => ({
 });
 
 export const createQueen = (color) => ({
-  id: 'queen',
+  id: QUEEN,
   color,
   getMoves({ pieces, x, y }) {
     return [

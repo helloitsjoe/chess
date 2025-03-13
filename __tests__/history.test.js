@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createHistory } from '../history';
 import { createEmpty, createPawn } from '../pieces';
-import { BLACK, WHITE } from '../constants';
+import { BLACK, WHITE, Pieces } from '../constants';
 
 describe('history', () => {
   it('creates the history API', () => {
@@ -35,16 +35,16 @@ describe('history', () => {
     const [pawn1, pawn2] = row1;
     const [empty1, empty2] = row2;
     expect(pawn1).toEqual({
-      id: 'pawn',
+      id: Pieces.PAWN,
       color: WHITE,
       getMoves: expect.any(Function),
     });
     expect(pawn2).toEqual({
-      id: 'pawn',
+      id: Pieces.PAWN,
       color: BLACK,
       getMoves: expect.any(Function),
     });
-    expect(empty1).toEqual({ id: 'empty' });
-    expect(empty2).toEqual({ id: 'empty' });
+    expect(empty1).toEqual({ id: Pieces.EMPTY });
+    expect(empty2).toEqual({ id: Pieces.EMPTY });
   });
 });

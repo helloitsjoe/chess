@@ -1,4 +1,4 @@
-import { WHITE, BLACK, BOARD_SIZE, Type } from './constants.js';
+import { WHITE, BLACK, BOARD_SIZE, Type, Pieces } from './constants.js';
 import {
   putsSelfInCheck,
   getIsCheck,
@@ -111,12 +111,12 @@ function drawPieces({ pieces }) {
       const pieceEl = document.createElement('div');
       pieceEl.classList.add('square', 'piece');
       if (sq) {
-        if (sq.id !== 'empty') {
+        if (sq.id !== Pieces.EMPTY) {
           pieceEl.innerHTML = sprites[sq.color][sq.id];
         }
 
         if (showHints) {
-          if (sq.id === 'king') {
+          if (sq.id === Pieces.KING) {
             if (sq.inCheck && sq.color === game.turn) {
               pieceEl.classList.add('bad-move');
             } else {

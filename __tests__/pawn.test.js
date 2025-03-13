@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { createEmpty, createPawn } from '../pieces';
 import { createEmptyBoard } from '../utils';
-import { BLACK, WHITE } from '../constants';
+import { BLACK, WHITE, Pieces } from '../constants';
 
 it('empty square', () => {
   const empty = createEmpty();
-  expect(empty).toEqual({ id: 'empty' });
+  expect(empty).toEqual({ id: Pieces.EMPTY });
 });
 
 describe('pawn', () => {
@@ -15,7 +15,11 @@ describe('pawn', () => {
     ${'white'} | ${WHITE}
   `('creates a $color pawn', ({ color }) => {
     const pawn = createPawn(color);
-    expect(pawn).toEqual({ id: 'pawn', color, getMoves: expect.any(Function) });
+    expect(pawn).toEqual({
+      id: Pieces.PAWN,
+      color,
+      getMoves: expect.any(Function),
+    });
   });
 
   describe('WHITE', () => {

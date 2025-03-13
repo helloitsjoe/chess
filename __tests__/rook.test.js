@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createRook } from '../pieces';
 import { createEmptyBoard } from '../utils';
-import { BLACK, WHITE } from '../constants';
+import { BLACK, WHITE, Pieces } from '../constants';
 import { expectArraysEqual } from './testUtils';
 
 describe('rook', () => {
@@ -11,7 +11,7 @@ describe('rook', () => {
     ${'white'} | ${WHITE}
   `('creates a $name rook', ({ color }) => {
     expect(createRook(color)).toEqual({
-      id: 'rook',
+      id: Pieces.ROOK,
       color,
       hasMoved: false,
       getMoves: expect.any(Function),

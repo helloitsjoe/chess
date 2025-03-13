@@ -1,4 +1,4 @@
-import { WHITE, BLACK, BOARD_SIZE } from './constants.js';
+import { WHITE, BLACK, BOARD_SIZE, Pieces } from './constants.js';
 import {
   createPawn,
   createRook,
@@ -8,18 +8,19 @@ import {
   createQueen,
   createEmpty,
 } from './pieces.js';
+const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
 
-export const isEmpty = (piece) => piece?.id === 'empty';
+export const isEmpty = (piece) => piece?.id === EMPTY;
 
 // getMoves functions aren't serialized when we save undo state
 export function rehydrate(pieces) {
   const factoryMap = {
-    pawn: createPawn,
-    rook: createRook,
-    knight: createKnight,
-    bishop: createBishop,
-    king: createKing,
-    queen: createQueen,
+    [PAWN]: createPawn,
+    [ROOK]: createRook,
+    [KNIGHT]: createKnight,
+    [BISHOP]: createBishop,
+    [KING]: createKing,
+    [QUEEN]: createQueen,
   };
 
   return pieces.map((row) =>
@@ -51,10 +52,10 @@ export function putsSelfInCheck({
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = pieces[y][x];
-      if (piece.id === 'king' && piece.color === turn) {
+      if (piece.id === KING && piece.color === turn) {
         kingCoords = { x, y };
       }
-      if (piece.id !== 'empty' && piece.color !== turn) {
+      if (piece.id !== EMPTY && piece.color !== turn) {
         allMoves.push(...piece.getMoves({ pieces, x, y }));
       }
     }
@@ -76,10 +77,10 @@ export function getIsCheck({ pieces: origPieces, turn }) {
   for (let y = 0; y < 8; y++) {
     for (let x = 0; x < 8; x++) {
       const piece = pieces[y][x];
-      if (piece.id === 'king' && piece.color !== turn) {
+      if (piece.id === KING && piece.color !== turn) {
         kingCoords = { x, y };
       }
-      if (piece.id !== 'empty' && piece.color === turn) {
+      if (piece.id !== EMPTY && piece.color === turn) {
         allMoves.push(...piece.getMoves({ pieces, x, y }));
       }
     }
