@@ -227,7 +227,7 @@ export const createKing = (color, hasMoved = false) => ({
       { x: x - 1, y: y + 1 },
       { x: x - 1, y: y - 1 },
       { x: x + 1, y: y - 1 },
-    ];
+    ].map((m) => ({ ...m, type: Type.NORMAL }));
 
     // If no pieces between king and rook AND neither has moved yet, allow castle
     if (!this.hasMoved) {
@@ -239,7 +239,7 @@ export const createKing = (color, hasMoved = false) => ({
             allMoves.push({ x: x + 2, y, type: Type.CASTLE });
           }
           if (queensRook.id === 'rook' && !queensRook.hasMoved) {
-            allMoves.push({ x: x - 2, y, type: 'castle' });
+            allMoves.push({ x: x - 2, y, type: Type.CASTLE });
           }
         }
       } else {

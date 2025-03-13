@@ -16,9 +16,10 @@ import { createEmpty, createPieces } from './pieces.js';
 // Check for stalemate
 // En passant
 // Drag-n-drop
+// Compress/export save game
 
 let showHints = true;
-let lockCheck = true;
+let lockCheck = false;
 
 function undo() {
   const previous = game.history.getLastMove();
@@ -176,6 +177,11 @@ function update({ game, sq, x, y }) {
     pieces[y][x] = newPiece;
     pieces[oldY][oldX] = createEmpty();
 
+    if (pieceToTake.id === 'king') {
+      const winner = turn === WHITE ? 'white' : 'black';
+      alert(`Checkmate! ${winner} wins!`);
+    }
+
     if (type === Type.CASTLE) {
       castle({ pieces, x, y });
     }
@@ -208,7 +214,9 @@ function update({ game, sq, x, y }) {
   }
 
   const kingCoords = getIsCheck({ pieces, turn });
-  pieces[kingCoords.y][kingCoords.x].inCheck = kingCoords.isCheck;
+  if (pieces[kingCoords.y]?.[kingCoords.x]) {
+    pieces[kingCoords.y][kingCoords.x].inCheck = kingCoords.isCheck;
+  }
 
   game = { ...game, pieces, whiteTaken, blackTaken, history };
 }
