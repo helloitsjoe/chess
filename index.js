@@ -55,6 +55,22 @@ document.getElementById('load-button').onclick = () => {
   draw(game);
 };
 
+document.getElementById('export-button').onclick = () => {
+  const base64Game = btoa(JSON.stringify(game));
+  const response = confirm(`Copy this game ID to clipboard? ${base64Game}`);
+  if (response) {
+    navigator.clipboard.writeText(base64Game);
+  }
+};
+
+document.getElementById('import-button').onclick = () => {
+  const gameBase64 = prompt('Enter an exported game ID:');
+  game = JSON.parse(atob(gameBase64));
+  game.pieces = rehydrate(game.pieces);
+  game.history = createHistory();
+  draw(game);
+};
+
 document.getElementById('show-hints').onchange = (e) => {
   showHints = !showHints;
   e.target.checked = showHints;
