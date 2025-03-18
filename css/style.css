@@ -1,10 +1,8 @@
 :root {
-    --square-size: 100px;
     --board-size: 8;
-    @media (max-width: 768px) {
-        --square-size: calc(100vw / var(--board-size));
-    }
+    --square-size: calc(100vmin / var(--board-size));
 }
+
 
 html, body {
     margin: 0;
@@ -25,7 +23,6 @@ html, body {
 
 .row {
     display: flex;
-    /* margin: auto; */
 }
 
 .square {
@@ -49,10 +46,10 @@ html, body {
 
 .piece {
     font-weight: bold;
-    transform: scale(1.8) translateX(15%) translateY(15%);
-    @media (max-width: 768px) {
-        transform: scale(1.0) translateX(8%) translateY(25%);
-    }
+}
+
+svg {
+    transform: scale(2.0) translateX(20%) translateY(20%);
 }
 
 .show-move {
@@ -100,11 +97,6 @@ html, body {
     height: calc(var(--square-size) * var(--board-size));
     top: 0;
     left: calc(var(--square-size) * var(--board-size));
-
-    @media (max-width: 768px) {
-        top: calc(var(--square-size) * var(--board-size));
-        left: 0;
-    }
 }
 
 #controls-container {
@@ -115,6 +107,7 @@ html, body {
     display: flex;
     margin-bottom: 20px;
     gap: 10px;
+    flex-wrap: wrap;
 }
 
 .turn {
@@ -142,6 +135,20 @@ html, body {
     border-radius: 4px;
 }
 
+@media (max-width: 768px) {
+    svg {
+        transform: scale(1.0) translateX(8%) translateY(20%);
+    }
+
+    #other-container {
+        top: calc(var(--square-size) * var(--board-size));
+        left: 0;
+    }
+
+    button {
+        font-size: 24px;
+    }
+}
 
 
 
@@ -10010,6 +10017,7 @@ html, body {
 
 
 /* Rowan */
+
 
 
 
