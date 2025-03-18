@@ -1,6 +1,9 @@
 :root {
     --square-size: 100px;
     --board-size: 8;
+    @media (max-width: 768px) {
+        --square-size: calc(100vw / var(--board-size));
+    }
 }
 
 html, body {
@@ -46,6 +49,10 @@ html, body {
 
 .piece {
     font-weight: bold;
+    transform: scale(1.8) translateX(15%) translateY(15%);
+    @media (max-width: 768px) {
+        transform: scale(1.0) translateX(8%) translateY(25%);
+    }
 }
 
 .show-move {
@@ -93,6 +100,11 @@ html, body {
     height: calc(var(--square-size) * var(--board-size));
     top: 0;
     left: calc(var(--square-size) * var(--board-size));
+
+    @media (max-width: 768px) {
+        top: calc(var(--square-size) * var(--board-size));
+        left: 0;
+    }
 }
 
 #controls-container {
