@@ -50,6 +50,7 @@ html, body {
 
 svg {
     transform: scale(2.0) translateX(20%) translateY(20%);
+    /* pointer-events: none; */
 }
 
 .show-move {

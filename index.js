@@ -16,7 +16,6 @@ import { createEmpty, createPieces } from './pieces.js';
 // Check for stalemate
 // En passant
 // Drag-n-drop
-// Compress/export save game
 
 let showHints = true;
 let lockCheck = false;
