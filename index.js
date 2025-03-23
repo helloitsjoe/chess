@@ -70,6 +70,11 @@ document.getElementById('import-button').onclick = () => {
   draw(game);
 };
 
+document.getElementById('taken-button').onclick = () => {
+  const takenContainer = document.getElementById('taken-container');
+  takenContainer.classList.toggle('hidden');
+};
+
 document.getElementById('show-hints').onchange = (e) => {
   showHints = !showHints;
   e.target.checked = showHints;

@@ -123,6 +123,10 @@ svg {
     flex-grow: 1;
     height: 100vh;
     overflow-x: scroll;
+
+    &.hidden {
+        display: none;
+    }
 }
 
 .taken {
@@ -136,7 +140,12 @@ svg {
     border-radius: 4px;
 }
 
+
 @media (max-width: 768px) {
+    body {
+        overflow: hidden;
+    }
+
     svg {
         transform: scale(1.0) translateX(8%) translateY(20%);
     }
