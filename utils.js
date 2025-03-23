@@ -12,6 +12,19 @@ const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
 
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
+const ROWS = 'abcdefgh';
+
+export function getNotation(pieces, moveFrom, moveTo) {
+  const moveFromRank = moveFrom.y + 1;
+  const moveFromRow = ROWS[moveFrom.x];
+  const moveToRank = moveTo.y + 1;
+  const moveToRow = ROWS[moveTo.x];
+  const piece = pieces[moveFrom.y][moveFrom.x];
+  const taken = pieces[moveTo.y][moveTo.x];
+
+  return `${piece.id}${moveFromRow}${moveFromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${moveToRow}${moveToRank}`;
+}
+
 // getMoves functions aren't serialized when we save undo state
 export function rehydrate(pieces) {
   const factoryMap = {
