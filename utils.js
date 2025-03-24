@@ -124,7 +124,7 @@ export function promote(color) {
 
 export function castle({ pieces, x, y }) {
   const piece = pieces[y][x];
-  if (piece.color === BLACK) {
+  if (piece.color === WHITE) {
     if (x === 6) {
       const newRook = pieces[7][7];
       newRook.hasMoved = true;
@@ -136,7 +136,7 @@ export function castle({ pieces, x, y }) {
       pieces[7][3] = newRook;
       pieces[7][0] = createEmpty();
     }
-  } else if (piece.color === WHITE) {
+  } else if (piece.color === BLACK) {
     if (x === 2) {
       const newRook = pieces[0][0];
       newRook.hasMoved = true;
