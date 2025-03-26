@@ -13,11 +13,12 @@ const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
 const ROWS = 'abcdefgh';
+const getRank = (y) => BOARD_SIZE - y;
 
 export function getNotation(pieces, moveFrom, moveTo) {
-  const moveFromRank = moveFrom.y + 1;
+  const moveFromRank = getRank(moveFrom.y);
   const moveFromRow = ROWS[moveFrom.x];
-  const moveToRank = moveTo.y + 1;
+  const moveToRank = getRank(moveTo.y);
   const moveToRow = ROWS[moveTo.x];
   const piece = pieces[moveFrom.y][moveFrom.x];
   const taken = pieces[moveTo.y][moveTo.x];
