@@ -6,6 +6,8 @@ import {
   rehydrate,
   promote,
   castle,
+  toNotation,
+  parseNotation,
 } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
@@ -22,18 +24,31 @@ let lockCheck = false;
 
 function undo() {
   const previous = game.history.getLastMove();
+  // TODO: Convert to move from notation
+  console.log('previous', previous);
   if (!previous) return;
   game.turn = game.turn === WHITE ? BLACK : WHITE;
-  const { pieces: previousPieces, takenPiece } = previous;
-  if (!isEmpty(takenPiece)) {
-    const { color, id } = takenPiece;
-    if (color === WHITE) {
-      game.blackTaken[id]--;
+  // const { pieces: previousPieces, takenPiece } = previous;
+  // if (!isEmpty(takenPiece)) {
+  //   const { color, id } = takenPiece;
+  //   if (color === WHITE) {
+  //     game.blackTaken[id]--;
+  //   } else {
+  //     game.whiteTaken[id]--;
+  //   }
+  // }
+  // game.pieces = previousPieces;
+
+  if (takenId) {
+    if (game.turn === WHITE) {
+      game.blackTaken[takenId]--;
     } else {
-      game.whiteTaken[id]--;
+      game.whiteTaken[takenId]--;
     }
   }
-  game.pieces = previousPieces;
+
+  const { toSq, fromSq, id, takenId } = parseNotation(previous);
+
   draw(game);
 }
 
@@ -169,10 +184,9 @@ function update({ game, sq, x, y }) {
   if (sq.pendingMove) {
     // Move piece
     const { x: oldX, y: oldY, type } = sq.pendingMove;
+    console.log('oldX, oldY', oldX, oldY);
     const oldPiece = pieces[oldY][oldX];
     const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
-
-    clearPending(pieces);
 
     // TODO: Move this into getMoves?
     const pieceToTake = pieces[y][x];
@@ -184,7 +198,11 @@ function update({ game, sq, x, y }) {
       }
     }
 
-    history.push(pieces, pieceToTake);
+    console.log('sq.pendingMove', sq.pendingMove);
+    const moveNote = toNotation(pieces, sq.pendingMove, { x, y });
+    history.push(moveNote);
+
+    clearPending(pieces);
 
     newPiece.hasMoved = true;
 

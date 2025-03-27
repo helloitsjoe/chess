@@ -13,17 +13,33 @@ const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
 const ROWS = 'abcdefgh';
-const getRank = (y) => BOARD_SIZE - y;
+const getRank = (board, y) => board.length - y;
+const getRow = (num) => Number(num) - 1;
+const getCol = (letter) => ROWS.indexOf(letter);
 
-export function getNotation(pieces, moveFrom, moveTo) {
-  const moveFromRank = getRank(moveFrom.y);
+export function toNotation(pieces, moveFrom, moveTo) {
+  const moveFromRank = getRank(pieces, moveFrom.y);
   const moveFromRow = ROWS[moveFrom.x];
-  const moveToRank = getRank(moveTo.y);
+  const moveToRank = getRank(pieces, moveTo.y);
   const moveToRow = ROWS[moveTo.x];
   const piece = pieces[moveFrom.y][moveFrom.x];
   const taken = pieces[moveTo.y][moveTo.x];
 
+  // TODO: check/checkmate/castle
   return `${piece.id}${moveFromRow}${moveFromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${moveToRow}${moveToRank}`;
+}
+
+export function parseNotation(notation) {
+  const id = notation[0];
+  const fromSq = { x: getRow(notation[1]), y: getCol(notation[2]) };
+  const xIndex = notation.indexOf('x');
+  const takenId = xIndex > -1 ? notation[xIndex + 1] : '';
+  const toSq =
+    xIndex > -1
+      ? { x: getRow(notation[xIndex + 2]), y: getCol(notation[xIndex + 3]) }
+      : { x: getRow(notation[3]), y: getCol(notation[4]) };
+
+  return { id, fromSq, takenId, toSq };
 }
 
 // getMoves functions aren't serialized when we save undo state
