@@ -13,46 +13,46 @@ const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
 const ROWS = 'abcdefgh';
-const getRank = (board, y) => board.length - y;
-const getRow = (num) => Number(num) - 1;
+const getRank = (y) => BOARD_SIZE - y;
+const getRow = (num) => BOARD_SIZE - Number(num);
 const getCol = (letter) => ROWS.indexOf(letter);
 
 export function toNotation(pieces, moveFrom, moveTo) {
-  const moveFromRank = getRank(pieces, moveFrom.y);
-  const moveFromRow = ROWS[moveFrom.x];
-  const moveToRank = getRank(pieces, moveTo.y);
-  const moveToRow = ROWS[moveTo.x];
+  const fromRank = getRank(moveFrom.y);
+  const fromRow = ROWS[moveFrom.x];
+  const toRank = getRank(moveTo.y);
+  const toRow = ROWS[moveTo.x];
   const piece = pieces[moveFrom.y][moveFrom.x];
   const taken = pieces[moveTo.y][moveTo.x];
 
   // TODO: check/checkmate/castle
-  return `${piece.id}${moveFromRow}${moveFromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${moveToRow}${moveToRank}`;
+  return `${piece.id}${fromRow}${fromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${toRow}${toRank}`;
 }
 
-export function parseNotation(notation) {
-  const id = notation[0];
-  const fromSq = { x: getRow(notation[1]), y: getCol(notation[2]) };
-  const xIndex = notation.indexOf('x');
-  const takenId = xIndex > -1 ? notation[xIndex + 1] : '';
-  const toSq =
-    xIndex > -1
-      ? { x: getRow(notation[xIndex + 2]), y: getCol(notation[xIndex + 3]) }
-      : { x: getRow(notation[3]), y: getCol(notation[4]) };
+export const factoryMap = {
+  [PAWN]: createPawn,
+  [ROOK]: createRook,
+  [KNIGHT]: createKnight,
+  [BISHOP]: createBishop,
+  [KING]: createKing,
+  [QUEEN]: createQueen,
+  [EMPTY]: createEmpty,
+};
+
+export function fromNotation(notation) {
+  // Regex to parse notation. For example 'Pb7b6' would be: ['P', 'b7', 'b6']
+  // and 'Ra8xBa5' would be: [R, a8, x, B, a5]
+  const notationRegex = /([A-Z])([a-h][1-8])x?([A-Z])?([a-h][1-8])/;
+  const [, id, from, takenId = '', to] = notation.match(notationRegex);
+
+  const fromSq = { x: getCol(from[0]), y: getRow(from[1]) };
+  const toSq = { x: getCol(to[0]), y: getRow(to[1]) };
 
   return { id, fromSq, takenId, toSq };
 }
 
 // getMoves functions aren't serialized when we save undo state
 export function rehydrate(pieces) {
-  const factoryMap = {
-    [PAWN]: createPawn,
-    [ROOK]: createRook,
-    [KNIGHT]: createKnight,
-    [BISHOP]: createBishop,
-    [KING]: createKing,
-    [QUEEN]: createQueen,
-  };
-
   return pieces.map((row) =>
     row.map((piece) => {
       const factory = factoryMap[piece.id];

@@ -1,29 +1,28 @@
-import { rehydrate } from './utils.js';
-
 export function createHistory() {
   const history = [];
+  let pointer = 0;
 
-  // TODO: Optimize this by only saving the pieces that have changed
-  // const push = (newPieces, takenPiece) =>
-  //   history.push({
-  //     pieces: JSON.parse(JSON.stringify(newPieces)),
-  //     takenPiece,
-  //   });
   // TODO: 2d array white/black: [[w,b],[w,b]]
   const push = (move) => {
+    pointer++;
     history.push(move);
   };
 
   const getLastMove = () => {
-    if (history.length === 0) {
+    if (pointer === 0) {
       return null;
     }
-    return history.pop();
-    // const { pieces, takenPiece } = history.pop();
-    // return { pieces: rehydrate(pieces), takenPiece };
+    pointer--;
+    return history[pointer];
   };
 
-  // getNextMove
+  const getNextMove = () => {
+    if (pointer >= history.length) {
+      return null;
+    }
+    pointer++;
+    return history[pointer - 1];
+  };
 
-  return { push, getLastMove };
+  return { push, getLastMove, getNextMove };
 }

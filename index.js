@@ -7,7 +7,8 @@ import {
   promote,
   castle,
   toNotation,
-  parseNotation,
+  fromNotation,
+  factoryMap,
 } from './utils.js';
 import { sprites } from './sprites.js';
 import { createHistory } from './history.js';
@@ -24,30 +25,50 @@ let lockCheck = false;
 
 function undo() {
   const previous = game.history.getLastMove();
-  // TODO: Convert to move from notation
-  console.log('previous', previous);
   if (!previous) return;
+
   game.turn = game.turn === WHITE ? BLACK : WHITE;
-  // const { pieces: previousPieces, takenPiece } = previous;
-  // if (!isEmpty(takenPiece)) {
-  //   const { color, id } = takenPiece;
-  //   if (color === WHITE) {
-  //     game.blackTaken[id]--;
-  //   } else {
-  //     game.whiteTaken[id]--;
-  //   }
-  // }
-  // game.pieces = previousPieces;
+
+  const { toSq, fromSq, id, takenId } = fromNotation(previous);
+
+  const pieceFn = factoryMap[id];
+  const takenFn = factoryMap[takenId || Pieces.EMPTY];
+
+  game.pieces[fromSq.y][fromSq.x] = pieceFn(game.turn);
+  game.pieces[toSq.y][toSq.x] = takenFn(game.turn === WHITE ? BLACK : WHITE);
 
   if (takenId) {
-    if (game.turn === WHITE) {
+    if (game.turn === BLACK) {
       game.blackTaken[takenId]--;
     } else {
       game.whiteTaken[takenId]--;
     }
   }
 
-  const { toSq, fromSq, id, takenId } = parseNotation(previous);
+  draw(game);
+}
+
+function redo() {
+  const next = game.history.getNextMove();
+  if (!next) return;
+
+  game.turn = game.turn === WHITE ? BLACK : WHITE;
+
+  const { toSq, fromSq, id, takenId } = fromNotation(next);
+
+  const pieceFn = factoryMap[id];
+  const takenFn = factoryMap[Pieces.EMPTY];
+
+  game.pieces[fromSq.y][fromSq.x] = takenFn();
+  game.pieces[toSq.y][toSq.x] = pieceFn(game.turn === WHITE ? BLACK : WHITE);
+
+  if (takenId) {
+    if (game.turn === WHITE) {
+      game.blackTaken[takenId] = (game.blackTaken[takenId] || 0) + 1;
+    } else {
+      game.whiteTaken[takenId] = (game.whiteTaken[takenId] || 0) + 1;
+    }
+  }
 
   draw(game);
 }
@@ -57,6 +78,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 document.getElementById('undo-button').onclick = undo;
+document.getElementById('redo-button').onclick = redo;
 
 document.getElementById('save-button').onclick = () => {
   localStorage.setItem('chess', JSON.stringify(game));
@@ -184,7 +206,6 @@ function update({ game, sq, x, y }) {
   if (sq.pendingMove) {
     // Move piece
     const { x: oldX, y: oldY, type } = sq.pendingMove;
-    console.log('oldX, oldY', oldX, oldY);
     const oldPiece = pieces[oldY][oldX];
     const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
 
@@ -198,7 +219,6 @@ function update({ game, sq, x, y }) {
       }
     }
 
-    console.log('sq.pendingMove', sq.pendingMove);
     const moveNote = toNotation(pieces, sq.pendingMove, { x, y });
     history.push(moveNote);
 

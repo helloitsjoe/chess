@@ -1,5 +1,5 @@
 import { expect, it, describe } from 'vitest';
-import { createEmptyBoard, toNotation } from '../utils';
+import { createEmptyBoard, toNotation, fromNotation } from '../utils';
 import { createBishop, createPieces, createRook } from '../pieces';
 import { BLACK, WHITE } from '../constants';
 
@@ -20,5 +20,25 @@ describe('toNotation', () => {
     const moveTo = { x: 0, y: 3 };
     const notation = toNotation(pieces, moveFrom, moveTo);
     expect(notation).toBe('Ra8xBa5');
+  });
+});
+
+describe('fromNotation', () => {
+  it('gets move from notation', () => {
+    expect(fromNotation('Pb7b6')).toEqual({
+      fromSq: { x: 1, y: 1 },
+      toSq: { x: 1, y: 2 },
+      id: 'P',
+      takenId: '',
+    });
+  });
+
+  it('gets taking move from notation', () => {
+    expect(fromNotation('Ra8xBa5')).toEqual({
+      fromSq: { x: 0, y: 0 },
+      toSq: { x: 0, y: 3 },
+      id: 'R',
+      takenId: 'B',
+    });
   });
 });
