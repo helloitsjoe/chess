@@ -2,13 +2,16 @@ export function createHistory() {
   const history = [];
   let pointer = 0;
 
+  const inspect = () => history.join(' ');
+
   // TODO: 2d array white/black: [[w,b],[w,b]]
   const push = (move) => {
+    history.splice(pointer, Infinity);
     pointer++;
     history.push(move);
   };
 
-  const getLastMove = () => {
+  const undo = () => {
     if (pointer === 0) {
       return null;
     }
@@ -16,7 +19,7 @@ export function createHistory() {
     return history[pointer];
   };
 
-  const getNextMove = () => {
+  const redo = () => {
     if (pointer >= history.length) {
       return null;
     }
@@ -24,5 +27,5 @@ export function createHistory() {
     return history[pointer - 1];
   };
 
-  return { push, getLastMove, getNextMove };
+  return { push, undo, redo, inspect };
 }

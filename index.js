@@ -24,7 +24,7 @@ let showHints = true;
 let lockCheck = false;
 
 function undo() {
-  const previous = game.history.getLastMove();
+  const previous = game.history.undo();
   if (!previous) return;
 
   game.turn = game.turn === WHITE ? BLACK : WHITE;
@@ -49,7 +49,7 @@ function undo() {
 }
 
 function redo() {
-  const next = game.history.getNextMove();
+  const next = game.history.redo();
   if (!next) return;
 
   game.turn = game.turn === WHITE ? BLACK : WHITE;
