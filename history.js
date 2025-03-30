@@ -1,8 +1,10 @@
-export function createHistory() {
-  const history = [];
+import { HISTORY_DELIMITER } from './constants.js';
+
+export function createHistory(initialHistory = '') {
+  const history = [...initialHistory];
   let pointer = 0;
 
-  const inspect = () => history.join(' ');
+  const toString = () => history.join(HISTORY_DELIMITER);
 
   // TODO: 2d array white/black: [[w,b],[w,b]]
   const push = (move) => {
@@ -27,5 +29,5 @@ export function createHistory() {
     return history[pointer - 1];
   };
 
-  return { push, undo, redo, inspect };
+  return { push, undo, redo, toString };
 }

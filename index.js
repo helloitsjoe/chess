@@ -1,9 +1,15 @@
-import { WHITE, BLACK, BOARD_SIZE, Type, Pieces } from './constants.js';
+import {
+  WHITE,
+  BLACK,
+  BOARD_SIZE,
+  Type,
+  Pieces,
+  HISTORY_DELIMITER,
+} from './constants.js';
 import {
   putsSelfInCheck,
   getIsCheck,
   isEmpty,
-  rehydrate,
   promote,
   castle,
   toNotation,
@@ -23,7 +29,7 @@ import { createEmpty, createPieces } from './pieces.js';
 let showHints = true;
 let lockCheck = false;
 
-function undo() {
+function undo(game) {
   const previous = game.history.undo();
   if (!previous) return;
 
@@ -48,7 +54,7 @@ function undo() {
   draw(game);
 }
 
-function redo() {
+function redo(game) {
   const next = game.history.redo();
   if (!next) return;
 
@@ -74,36 +80,34 @@ function redo() {
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'u') undo();
+  if (e.key === 'u') undo(game);
 });
 
-document.getElementById('undo-button').onclick = undo;
-document.getElementById('redo-button').onclick = redo;
+document.getElementById('undo-button').onclick = () => undo(game);
+document.getElementById('redo-button').onclick = () => redo(game);
 
 document.getElementById('save-button').onclick = () => {
-  localStorage.setItem('chess', JSON.stringify(game));
+  localStorage.setItem('chess-history', game.history.toString());
 };
 
 document.getElementById('load-button').onclick = () => {
-  game = JSON.parse(localStorage.getItem('chess'));
-  game.pieces = rehydrate(game.pieces);
-  game.history = createHistory();
+  const historyStr = localStorage.getItem('chess-history');
+  game = createGame(historyStr.split(HISTORY_DELIMITER));
+
   draw(game);
 };
 
 document.getElementById('export-button').onclick = () => {
-  const base64Game = btoa(JSON.stringify(game));
-  const response = confirm(`Copy this game ID to clipboard? ${base64Game}`);
+  const historyStr = game.history.toString();
+  const response = confirm(`Copy history to clipboard? ${historyStr}`);
   if (response) {
-    navigator.clipboard.writeText(base64Game);
+    navigator.clipboard.writeText(historyStr);
   }
 };
 
 document.getElementById('import-button').onclick = () => {
-  const gameBase64 = prompt('Enter an exported game ID:');
-  game = JSON.parse(atob(gameBase64));
-  game.pieces = rehydrate(game.pieces);
-  game.history = createHistory();
+  const historyStr = prompt('Enter an exported game history:');
+  game = createGame(historyStr.split(HISTORY_DELIMITER));
   draw(game);
 };
 
@@ -240,7 +244,7 @@ function update({ game, sq, x, y }) {
     }
 
     if (lockCheck && type === Type.SELF_CHECK) {
-      undo();
+      undo(game);
     }
 
     game.turn = game.turn === WHITE ? BLACK : WHITE;
@@ -309,14 +313,20 @@ const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
 
-function createGame() {
-  return {
+function createGame(initialHistory = []) {
+  const game = {
+    history: createHistory(initialHistory),
     pieces: createPieces(),
     whiteTaken: {},
     blackTaken: {},
-    history: createHistory(),
     turn: WHITE,
   };
+
+  for (let i = 0; i < initialHistory.length; i++) {
+    redo(game);
+  }
+
+  return game;
 }
 
 document.getElementById('board-root').appendChild(createBoard(board));

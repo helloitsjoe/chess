@@ -7,6 +7,14 @@ describe('history', () => {
     expect(typeof history.push).toBe('function');
     expect(typeof history.undo).toBe('function');
     expect(typeof history.redo).toBe('function');
+    expect(typeof history.toString).toBe('function');
+  });
+
+  it('toString returns a string representation', () => {
+    const history = createHistory();
+    history.push('Pc1c2');
+    history.push('Pb7b6');
+    expect(history.toString()).toBe('Pc1c2|Pb7b6');
   });
 
   it('undo returns null if no previous moves', () => {
@@ -45,11 +53,11 @@ describe('history', () => {
 
     history.push(firstMove);
     history.push(secondWrongMove);
-    expect(history.inspect()).toBe(`${firstMove} ${secondWrongMove}`);
+    expect(history.toString()).toBe(`${firstMove}|${secondWrongMove}`);
 
     history.undo();
     history.push(secondFixedMove);
 
-    expect(history.inspect()).toBe(`${firstMove} ${secondFixedMove}`);
+    expect(history.toString()).toBe(`${firstMove}|${secondFixedMove}`);
   });
 });

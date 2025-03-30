@@ -51,16 +51,6 @@ export function fromNotation(notation) {
   return { id, fromSq, takenId, toSq };
 }
 
-// getMoves functions aren't serialized when we save undo state
-export function rehydrate(pieces) {
-  return pieces.map((row) =>
-    row.map((piece) => {
-      const factory = factoryMap[piece.id];
-      return factory ? factory(piece.color, piece.hasMoved) : createEmpty();
-    }),
-  );
-}
-
 // TODO: Consolidate this with getIsCheck. Can use pendingMove instead of new/old?
 export function putsSelfInCheck({
   pieces: origPieces,
