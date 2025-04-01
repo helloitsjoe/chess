@@ -26,9 +26,7 @@ import { createEmpty, createPieces } from './pieces.js';
 // En passant
 // Drag-n-drop
 
-let showHints = true;
-let lockCheck = false;
-
+// TODO: Fix the bug when pendingMove + undo (cancel pending when undoing)
 function undo(game) {
   const previous = game.history.undo();
   if (!previous) return;
@@ -79,16 +77,17 @@ function redo(game) {
   draw(game);
 }
 
+function save(game) {
+  localStorage.setItem('chess-history', game.history.toString());
+}
+
 window.addEventListener('keydown', (e) => {
   if (e.key === 'u') undo(game);
 });
 
 document.getElementById('undo-button').onclick = () => undo(game);
 document.getElementById('redo-button').onclick = () => redo(game);
-
-document.getElementById('save-button').onclick = () => {
-  localStorage.setItem('chess-history', game.history.toString());
-};
+document.getElementById('save-button').onclick = () => save(game);
 
 document.getElementById('load-button').onclick = () => {
   const historyStr = localStorage.getItem('chess-history');
@@ -111,17 +110,31 @@ document.getElementById('import-button').onclick = () => {
   draw(game);
 };
 
-document.getElementById('show-hints').onchange = (e) => {
+const showHintsInput = document.getElementById('show-hints');
+const lockCheckInput = document.getElementById('lock-check');
+const autoSaveInput = document.getElementById('autosave');
+
+showHintsInput.onchange = (e) => {
   showHints = !showHints;
   e.target.checked = showHints;
   draw(game);
 };
 
-document.getElementById('lock-check').onchange = (e) => {
+lockCheckInput.onchange = (e) => {
   lockCheck = !lockCheck;
   e.target.checked = lockCheck;
   draw(game);
 };
+
+autoSaveInput.onchange = (e) => {
+  autoSave = !autoSave;
+  e.target.checked = autoSave;
+  draw(game);
+};
+
+let showHints = showHintsInput.checked;
+let lockCheck = lockCheckInput.checked;
+let autoSave = autoSaveInput.checked;
 
 function createBoard(board) {
   const boardDiv = document.createElement('div');
@@ -225,6 +238,10 @@ function update({ game, sq, x, y }) {
 
     const moveNote = toNotation(pieces, sq.pendingMove, { x, y });
     history.push(moveNote);
+    if (autoSave) {
+      console.log('saving');
+      save(game);
+    }
 
     clearPending(pieces);
 
