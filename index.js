@@ -26,8 +26,8 @@ import { createEmpty, createPieces } from './pieces.js';
 // En passant
 // Drag-n-drop
 
-// TODO: Fix the bug when pendingMove + undo (cancel pending when undoing)
 function undo(game) {
+  clearPending(game.pieces);
   const previous = game.history.undo();
   if (!previous) return;
 
@@ -53,6 +53,7 @@ function undo(game) {
 }
 
 function redo(game) {
+  clearPending(game.pieces);
   const next = game.history.redo();
   if (!next) return;
 
@@ -238,8 +239,8 @@ function update({ game, sq, x, y }) {
 
     const moveNote = toNotation(pieces, sq.pendingMove, { x, y });
     history.push(moveNote);
+
     if (autoSave) {
-      console.log('saving');
       save(game);
     }
 
