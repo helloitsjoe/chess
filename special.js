@@ -1,4 +1,4 @@
-import { WHITE, BLACK, Pieces } from './constants.js';
+import { Pieces } from './constants.js';
 import {
   createPawn,
   createRook,
@@ -100,15 +100,12 @@ export function promote(color) {
 
 export function castle({ pieces, x, y }) {
   const undo = x === 4;
-  console.log(' undo', undo);
   const piece = pieces[y][x];
   const kingXShort = undo ? 4 : 6;
   const kingXLong = undo ? 4 : 2;
   const rookXShort = undo ? 7 : 5;
   const rookXLong = undo ? 0 : 3;
   const emptyX = undo ? 5 : 7;
-
-  console.log(' piece.color', piece.color);
 
   const newRook = createRook(piece.color);
   newRook.hasMoved = !undo;
@@ -121,6 +118,6 @@ export function castle({ pieces, x, y }) {
   pieces[y][emptyX] = createEmpty();
 }
 
-export function enPassant({ pieces, x, y }) {
+export function enPassant() {
   //
 }

@@ -194,8 +194,6 @@ function update({ game, sq, x, y }) {
       alert(`Checkmate! ${winner} wins!`);
     }
 
-    // FIXME: Castling doesn't add rook position to history
-    // Repro: Castle, save, load
     if (type === Type.CASTLE) {
       castle({ pieces, x, y });
     }

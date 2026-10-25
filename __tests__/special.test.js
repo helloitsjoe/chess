@@ -24,3 +24,8 @@ describe('castle', () => {
     expect(pieces[y][rookX].hasMoved).toEqual(!undo);
   });
 });
+
+describe('en passant', () => {
+  it.todo('is successful when opposing pawn moves two squares');
+  it.todo('is not possible when opposing pawn moves one square');
+});
