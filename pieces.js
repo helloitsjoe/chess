@@ -130,9 +130,10 @@ function makeGetBishopMoves(color) {
 // Pieces
 export const createEmpty = () => ({ id: EMPTY });
 
-export const createPawn = (color) => ({
+export const createPawn = (color, { movedTwo = false } = {}) => ({
   id: PAWN,
   color,
+  movedTwo,
   getMoves({ pieces, x, y }) {
     const direction = color === BLACK ? 1 : -1;
     const startY = color === BLACK ? 1 : 6;
@@ -149,7 +150,7 @@ export const createPawn = (color) => ({
       moves.push({ x, y: newY, type });
       // If the pawn is in its starting position, it can move two squares
       if (y === startY && isEmpty(pieces[newYStart]?.[x])) {
-        moves.push({ x, y: newYStart, type });
+        moves.push({ x, y: newYStart, type: Type.EN_PASSANTABLE });
       }
     }
     // If a piece is diagonally in front of the pawn, it can take it
@@ -160,6 +161,27 @@ export const createPawn = (color) => ({
       moves.push({ x: x + 1, y: newY, type });
     }
     if (rightPiece && !isEmpty(rightPiece) && rightPiece.color !== color) {
+      moves.push({ x: x - 1, y: newY, type });
+    }
+
+    // If an en-passantable pawn is next to the pawn, it can take it
+    // as long as the color is different
+    const leftPawn = pieces[y]?.[x + 1];
+    const rightPawn = pieces[y]?.[x - 1];
+    if (
+      leftPawn &&
+      leftPawn.type === Type.PAWN &&
+      leftPawn.color !== color &&
+      leftPawn.movedTwo
+    ) {
+      moves.push({ x: x + 1, y: newY, type });
+    }
+    if (
+      rightPawn &&
+      rightPawn.type === Type.PAWN &&
+      rightPawn.color !== color &&
+      rightPawn.movedTwo
+    ) {
       moves.push({ x: x - 1, y: newY, type });
     }
 

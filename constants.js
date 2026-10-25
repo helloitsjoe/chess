@@ -10,6 +10,7 @@ export const Type = {
   CASTLE: 'castle',
   PROMOTE: 'promote',
   SELF_CHECK: 'self-check',
+  EN_PASSANTABLE: 'en-passantable',
 };
 
 export const Pieces = {

@@ -6,27 +6,15 @@ import {
   Pieces,
   HISTORY_DELIMITER,
 } from './constants.js';
-import { putsSelfInCheck, getIsCheck, promote, castle } from './special.js';
-import {
-  isEmpty,
-  toNotation,
-  undo,
-  redo,
-  clearPending,
-  createGame,
-} from './utils.js';
+import { update } from './game.js';
+import { save, undo, redo, createGame } from './utils.js';
 import { sprites } from './sprites.js';
-import { createEmpty } from './pieces.js';
 
 // TODO:
 // Check for checkmate
 // Check for stalemate
 // En passant
 // Drag-n-drop
-
-function save(game) {
-  localStorage.setItem('chess-history', game.history.toString());
-}
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'u') draw(undo(game));
@@ -144,7 +132,7 @@ function drawPieces({ pieces }) {
 
         // TODO: Don't replace this click handler on every draw
         pieceEl.onclick = () => {
-          update({ game, sq, x, y });
+          game = update({ game, sq, x, y }, { autoSave, lockCheck });
           draw(game);
         };
       }
@@ -154,83 +142,6 @@ function drawPieces({ pieces }) {
   });
 
   return piecesContainer;
-}
-
-function update({ game, sq, x, y }) {
-  const { pieces, whiteTaken, blackTaken, turn, history } = game;
-  if (sq.pendingMove) {
-    // Move piece
-    const { x: oldX, y: oldY, type } = sq.pendingMove;
-    const oldPiece = pieces[oldY][oldX];
-    const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
-
-    // TODO: Move this into getMoves?
-    const pieceToTake = pieces[y][x];
-    if (!isEmpty(pieceToTake)) {
-      if (pieceToTake.color === WHITE) {
-        blackTaken[pieceToTake.id] = (blackTaken[pieceToTake.id] || 0) + 1;
-      } else {
-        whiteTaken[pieceToTake.id] = (whiteTaken[pieceToTake.id] || 0) + 1;
-      }
-    }
-
-    const moveNote = toNotation(pieces, sq.pendingMove, { x, y });
-    history.push(moveNote);
-
-    if (autoSave) {
-      save(game);
-    }
-
-    clearPending(pieces);
-
-    newPiece.hasMoved = true;
-
-    // Make move
-    pieces[y][x] = newPiece;
-    pieces[oldY][oldX] = createEmpty();
-
-    if (pieceToTake.id === 'king') {
-      const winner = turn === WHITE ? 'white' : 'black';
-      alert(`Checkmate! ${winner} wins!`);
-    }
-
-    if (type === Type.CASTLE) {
-      castle({ pieces, x, y });
-    }
-
-    if (lockCheck && type === Type.SELF_CHECK) {
-      undo(game);
-    }
-
-    game.turn = game.turn === WHITE ? BLACK : WHITE;
-  } else {
-    clearPending(pieces);
-    if (sq.color === turn) {
-      const moveOptions = sq?.getMoves ? sq.getMoves({ pieces, x, y }) : [];
-      for (const { x: newX, y: newY, type: newType } of moveOptions) {
-        if (newX >= 0 && newY >= 0 && newX < BOARD_SIZE && newY < BOARD_SIZE) {
-          // TODO: Also check for checkmate/stalemate
-          const isCheck = putsSelfInCheck({
-            pieces,
-            turn,
-            x,
-            y,
-            newX,
-            newY,
-          });
-          const type = isCheck ? Type.SELF_CHECK : newType;
-          pieces[newY][newX].pendingMove = { x, y, type };
-        }
-      }
-    }
-  }
-
-  const kingCoords = getIsCheck({ pieces, turn });
-  if (pieces[kingCoords.y]?.[kingCoords.x]) {
-    pieces[kingCoords.y][kingCoords.x].inCheck = kingCoords.isCheck;
-  }
-
-  game = { ...game, pieces, whiteTaken, blackTaken, history };
 }
 
 function draw(game) {

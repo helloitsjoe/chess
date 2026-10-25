@@ -19,6 +19,7 @@ describe('pawn', () => {
       id: Pieces.PAWN,
       color,
       getMoves: expect.any(Function),
+      movedTwo: false,
     });
   });
 
@@ -31,7 +32,7 @@ describe('pawn', () => {
       const moves = pawn.getMoves({ pieces, x, y });
       expect(moves).toEqual([
         { x: 0, y: 2, type: 'normal' },
-        { x: 0, y: 3, type: 'normal' },
+        { x: 0, y: 3, type: 'en-passantable' },
       ]);
     });
 
@@ -86,6 +87,27 @@ describe('pawn', () => {
       expect(moves).toEqual([straightMove, otherDiagonalMove]);
     });
 
+    it('can move diagonally for en passant', () => {
+      const pieces = createEmptyBoard();
+      const pawn = createPawn(BLACK);
+      const [x, y] = [2, 4];
+
+      pieces[y][x] = pawn;
+      pieces[4][3] = createPawn(WHITE, { movedTwo: true });
+
+      const straightMove = { x: 2, y: 5, type: 'normal' };
+      const diagonalMove = { x: 3, y: 5, type: 'normal' };
+      let moves = pawn.getMoves({ pieces, x, y });
+      expect(moves).toEqual([straightMove, diagonalMove]);
+
+      // Move white pawn to other diagonal
+      pieces[4][3] = createEmpty();
+      pieces[4][1] = createPawn(WHITE, { movedTwo: true });
+      const otherDiagonalMove = { x: 1, y: 5, type: 'normal' };
+      moves = pawn.getMoves({ pieces, x, y });
+      expect(moves).toEqual([straightMove, otherDiagonalMove]);
+    });
+
     it('promotes', () => {
       const pieces = createEmptyBoard();
       const pawn = createPawn(BLACK);
@@ -105,7 +127,7 @@ describe('pawn', () => {
       const moves = pawn.getMoves({ pieces, x, y });
       expect(moves).toEqual([
         { x: 0, y: 5, type: 'normal' },
-        { x: 0, y: 4, type: 'normal' },
+        { x: 0, y: 4, type: 'en-passantable' },
       ]);
     });
 
