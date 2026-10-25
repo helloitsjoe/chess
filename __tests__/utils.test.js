@@ -1,7 +1,32 @@
 import { expect, it, describe } from 'vitest';
-import { createEmptyBoard, toNotation, fromNotation } from '../utils';
+import { toNotation, fromNotation, createGame } from '../utils';
+import { createEmptyBoard } from './testUtils';
 import { createBishop, createPieces, createRook } from '../pieces';
 import { BLACK, WHITE } from '../constants';
+import { createHistory } from '../history';
+
+describe('createGame', () => {
+  it('creates a game', () => {
+    const game = createGame();
+    expect(Object.keys(game.history)).toEqual(Object.keys(createHistory()));
+    expect(JSON.stringify(game.pieces)).toEqual(JSON.stringify(createPieces()));
+    expect(game.whiteTaken).toEqual({});
+    expect(game.blackTaken).toEqual({});
+    expect(game.turn).toEqual(WHITE);
+  });
+
+  it('recreates a game from history', () => {
+    const HISTORY = ['Pb2b4', 'Pe7e6', 'Pc2c3', 'Bf8xPb4'];
+    const game = createGame(HISTORY);
+    expect(game.history.toString()).toEqual(HISTORY.join('|'));
+    expect(JSON.stringify(game.pieces)).not.toEqual(
+      JSON.stringify(createPieces()),
+    );
+    expect(game.whiteTaken).toEqual({});
+    expect(game.blackTaken).toEqual({ P: 1 });
+    expect(game.turn).toEqual(WHITE);
+  });
+});
 
 describe('toNotation', () => {
   it('gets notation for move', () => {
@@ -41,4 +66,13 @@ describe('fromNotation', () => {
       takenId: 'B',
     });
   });
+});
+
+describe('undo/redo', () => {
+  it.todo('undo move');
+  it.todo('undo taken');
+  it.todo('undo castle');
+  it.todo('redo move');
+  it.todo('redo taken');
+  it.todo('redo castle');
 });

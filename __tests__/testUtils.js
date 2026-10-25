@@ -1,10 +1,18 @@
 import { expect, it, describe } from 'vitest';
+import { BOARD_SIZE } from './constants.js';
+import { createEmpty } from './pieces.js';
 
 // Check equal arrays in any order
 export function expectArraysEqual(arr1, arr2) {
   expect(arr1.length).toBe(arr2.length);
   expect(arr1).toEqual(expect.arrayContaining(arr2));
   expect(arr2).toEqual(expect.arrayContaining(arr1));
+}
+
+export function createEmptyBoard() {
+  return Array.from({ length: BOARD_SIZE }, () =>
+    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
+  );
 }
 
 describe('expectArraysEqual', () => {

@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createKing, createPawn } from '../pieces';
-import { createEmptyBoard } from '../utils';
 import { BLACK, WHITE, Type, Pieces } from '../constants';
-import { expectArraysEqual } from './testUtils';
+import { expectArraysEqual, createEmptyBoard } from './testUtils';
 
 describe('king', () => {
   it.each`

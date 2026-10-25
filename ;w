@@ -1,0 +1,24 @@
+import { expect, describe, it } from 'vitest';
+import { createKing } from '../pieces.js';
+import { castle } from '../special.js';
+import { createGame } from '../utils';
+import { BLACK, WHITE, Pieces } from '../constants';
+
+describe('castle', () => {
+  it.each([
+    { dir: 'short', color: BLACK, kingX: 6, rookX: 5, y: 0 },
+    { dir: 'short', color: WHITE, kingX: 6, rookX: 5, y: 7 },
+    { dir: 'long', color: BLACK, kingX: 2, rookX: 3, y: 0 },
+    { dir: 'long', color: WHITE, kingX: 2, rookX: 3, y: 7 },
+    { dir: 'short', color: BLACK, kingX: 4, rookX: 7, y: 7, undo: true },
+    { dir: 'short', color: WHITE, kingX: 6, rookX: 5, y: 7, undo: true },
+    { dir: 'long', color: BLACK, kingX: 2, rookX: 3, y: 0 , undo: true },
+    { dir: 'long', color: WHITE, kingX: 2, rookX: 3, y: 7 , undo: true },
+  ])('$dir castles $color', ({ color, kingX, rookX, y, undo }) => {
+    const { pieces } = createGame();
+    pieces[y][kingX] = createKing(color);
+    castle({ pieces, x: kingX, y, undo });
+    expect(pieces[y][rookX].id).toEqual(Pieces.ROOK);
+    expect(pieces[y][rookX].hasMoved).toEqual(true);
+  });
+});

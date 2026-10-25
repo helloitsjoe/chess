@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createEmpty, createPawn } from '../pieces';
-import { createEmptyBoard } from '../utils';
+import { createEmptyBoard } from './testUtils';
 import { BLACK, WHITE, Pieces } from '../constants';
 
 it('empty square', () => {

@@ -6,19 +6,17 @@ import {
   Pieces,
   HISTORY_DELIMITER,
 } from './constants.js';
+import { putsSelfInCheck, getIsCheck, promote, castle } from './special.js';
 import {
-  putsSelfInCheck,
-  getIsCheck,
   isEmpty,
-  promote,
-  castle,
   toNotation,
-  fromNotation,
-  factoryMap,
+  undo,
+  redo,
+  clearPending,
+  createGame,
 } from './utils.js';
 import { sprites } from './sprites.js';
-import { createHistory } from './history.js';
-import { createEmpty, createPieces } from './pieces.js';
+import { createEmpty } from './pieces.js';
 
 // TODO:
 // Check for checkmate
@@ -26,68 +24,16 @@ import { createEmpty, createPieces } from './pieces.js';
 // En passant
 // Drag-n-drop
 
-function undo(game) {
-  clearPending(game.pieces);
-  const previous = game.history.undo();
-  if (!previous) return;
-
-  game.turn = game.turn === WHITE ? BLACK : WHITE;
-
-  const { toSq, fromSq, id, takenId } = fromNotation(previous);
-
-  const pieceFn = factoryMap[id];
-  const takenFn = factoryMap[takenId || Pieces.EMPTY];
-
-  game.pieces[fromSq.y][fromSq.x] = pieceFn(game.turn);
-  game.pieces[toSq.y][toSq.x] = takenFn(game.turn === WHITE ? BLACK : WHITE);
-
-  if (takenId) {
-    if (game.turn === BLACK) {
-      game.blackTaken[takenId]--;
-    } else {
-      game.whiteTaken[takenId]--;
-    }
-  }
-
-  draw(game);
-}
-
-function redo(game) {
-  clearPending(game.pieces);
-  const next = game.history.redo();
-  if (!next) return;
-
-  game.turn = game.turn === WHITE ? BLACK : WHITE;
-
-  const { toSq, fromSq, id, takenId } = fromNotation(next);
-
-  const pieceFn = factoryMap[id];
-  const takenFn = factoryMap[Pieces.EMPTY];
-
-  game.pieces[fromSq.y][fromSq.x] = takenFn();
-  game.pieces[toSq.y][toSq.x] = pieceFn(game.turn === WHITE ? BLACK : WHITE);
-
-  if (takenId) {
-    if (game.turn === WHITE) {
-      game.blackTaken[takenId] = (game.blackTaken[takenId] || 0) + 1;
-    } else {
-      game.whiteTaken[takenId] = (game.whiteTaken[takenId] || 0) + 1;
-    }
-  }
-
-  draw(game);
-}
-
 function save(game) {
   localStorage.setItem('chess-history', game.history.toString());
 }
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'u') undo(game);
+  if (e.key === 'u') draw(undo(game));
 });
 
-document.getElementById('undo-button').onclick = () => undo(game);
-document.getElementById('redo-button').onclick = () => redo(game);
+document.getElementById('undo-button').onclick = () => draw(undo(game));
+document.getElementById('redo-button').onclick = () => draw(redo(game));
 document.getElementById('save-button').onclick = () => save(game);
 
 document.getElementById('load-button').onclick = () => {
@@ -157,15 +103,6 @@ function createBoard(board) {
   });
 
   return boardDiv;
-}
-
-function clearPending(pieces) {
-  for (let i = 0; i < pieces.length; i++) {
-    const row = pieces[i];
-    for (let j = 0; j < row.length; j++) {
-      pieces[i][j].pendingMove = null;
-    }
-  }
 }
 
 function drawPieces({ pieces }) {
@@ -257,6 +194,8 @@ function update({ game, sq, x, y }) {
       alert(`Checkmate! ${winner} wins!`);
     }
 
+    // FIXME: Castling doesn't add rook position to history
+    // Repro: Castle, save, load
     if (type === Type.CASTLE) {
       castle({ pieces, x, y });
     }
@@ -330,22 +269,6 @@ function draw(game) {
 const board = Array.from({ length: BOARD_SIZE }, () =>
   Array.from({ length: BOARD_SIZE }, () => null),
 );
-
-function createGame(initialHistory = []) {
-  const game = {
-    history: createHistory(initialHistory),
-    pieces: createPieces(),
-    whiteTaken: {},
-    blackTaken: {},
-    turn: WHITE,
-  };
-
-  for (let i = 0; i < initialHistory.length; i++) {
-    redo(game);
-  }
-
-  return game;
-}
 
 document.getElementById('board-root').appendChild(createBoard(board));
 

@@ -1,14 +1,8 @@
-import { WHITE, BLACK, BOARD_SIZE, Pieces } from './constants.js';
-import {
-  createPawn,
-  createRook,
-  createKnight,
-  createBishop,
-  createKing,
-  createQueen,
-  createEmpty,
-} from './pieces.js';
-const { KING, PAWN, QUEEN, KNIGHT, BISHOP, ROOK, EMPTY } = Pieces;
+import { BLACK, WHITE, BOARD_SIZE, Pieces } from './constants.js';
+import { factoryMap, castle } from './special.js';
+import { createHistory } from './history.js';
+import { createPieces } from './pieces.js';
+const { EMPTY } = Pieces;
 
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
@@ -25,19 +19,17 @@ export function toNotation(pieces, moveFrom, moveTo) {
   const piece = pieces[moveFrom.y][moveFrom.x];
   const taken = pieces[moveTo.y][moveTo.x];
 
-  // TODO: check/checkmate/castle
   return `${piece.id}${fromRow}${fromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${toRow}${toRank}`;
 }
 
-export const factoryMap = {
-  [PAWN]: createPawn,
-  [ROOK]: createRook,
-  [KNIGHT]: createKnight,
-  [BISHOP]: createBishop,
-  [KING]: createKing,
-  [QUEEN]: createQueen,
-  [EMPTY]: createEmpty,
-};
+export function clearPending(pieces) {
+  for (let i = 0; i < pieces.length; i++) {
+    const row = pieces[i];
+    for (let j = 0; j < row.length; j++) {
+      pieces[i][j].pendingMove = null;
+    }
+  }
+}
 
 export function fromNotation(notation) {
   // Regex to parse notation. For example 'Pb7b6' would be: ['P', 'b7', 'b6']
@@ -51,115 +43,82 @@ export function fromNotation(notation) {
   return { id, fromSq, takenId, toSq };
 }
 
-// TODO: Consolidate this with getIsCheck. Can use pendingMove instead of new/old?
-export function putsSelfInCheck({
-  pieces: origPieces,
-  turn,
-  x: oldX,
-  y: oldY,
-  newX,
-  newY,
-}) {
-  const pieces = [...origPieces.map((row) => [...row])];
+export function undo(game) {
+  clearPending(game.pieces);
+  const previous = game.history.undo();
+  if (!previous) return;
 
-  const movingPiece = pieces[oldY][oldX];
-  pieces[newY][newX] = movingPiece;
-  pieces[oldY][oldX] = createEmpty();
+  game.turn = game.turn === WHITE ? BLACK : WHITE;
 
-  const allMoves = [];
-  let kingCoords = {};
+  const { toSq, fromSq, id, takenId } = fromNotation(previous);
 
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      const piece = pieces[y][x];
-      if (piece.id === KING && piece.color === turn) {
-        kingCoords = { x, y };
-      }
-      if (piece.id !== EMPTY && piece.color !== turn) {
-        allMoves.push(...piece.getMoves({ pieces, x, y }));
-      }
-    }
-  }
+  const createPiece = factoryMap[id];
+  const createEmpty = factoryMap[takenId || Pieces.EMPTY];
 
-  const isCheck = allMoves.some(
-    (move) => move.x === kingCoords.x && move.y === kingCoords.y,
+  game.pieces[fromSq.y][fromSq.x] = createPiece(game.turn);
+  game.pieces[toSq.y][toSq.x] = createEmpty(
+    game.turn === WHITE ? BLACK : WHITE,
   );
 
-  return isCheck;
-}
+  if (id === Pieces.KING && Math.abs(fromSq.x - toSq.x) > 1) {
+    castle({ pieces: game.pieces, x: fromSq.x, y: fromSq.y });
+  }
 
-export function getIsCheck({ pieces: origPieces, turn }) {
-  const pieces = [...origPieces.map((row) => [...row])];
-
-  const allMoves = [];
-  let kingCoords = {};
-
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      const piece = pieces[y][x];
-      if (piece.id === KING && piece.color !== turn) {
-        kingCoords = { x, y };
-      }
-      if (piece.id !== EMPTY && piece.color === turn) {
-        allMoves.push(...piece.getMoves({ pieces, x, y }));
-      }
+  if (takenId) {
+    if (game.turn === BLACK) {
+      game.blackTaken[takenId]--;
+    } else {
+      game.whiteTaken[takenId]--;
     }
   }
 
-  const isCheck = allMoves.some(
-    (move) => move.x === kingCoords.x && move.y === kingCoords.y,
+  return game;
+}
+
+export function redo(game) {
+  clearPending(game.pieces);
+  const next = game.history.redo();
+  if (!next) return;
+
+  game.turn = game.turn === WHITE ? BLACK : WHITE;
+
+  const { toSq, fromSq, id, takenId } = fromNotation(next);
+
+  const createPiece = factoryMap[id];
+  const createEmpty = factoryMap[Pieces.EMPTY];
+
+  game.pieces[fromSq.y][fromSq.x] = createEmpty();
+  game.pieces[toSq.y][toSq.x] = createPiece(
+    game.turn === WHITE ? BLACK : WHITE,
   );
 
-  return { ...kingCoords, isCheck };
-}
-
-export function promote(color) {
-  const selection = prompt('Which would you like to promote to? Q, R, N, B');
-  switch (selection.toUpperCase()) {
-    case 'Q':
-      return createQueen(color);
-    case 'R':
-      return createRook(color);
-    case 'N':
-      return createKnight(color);
-    case 'B':
-      return createBishop(color);
-    default:
-      return promote(color);
+  if (id === Pieces.KING && Math.abs(fromSq.x - toSq.x) > 1) {
+    castle({ pieces: game.pieces, x: toSq.x, y: toSq.y });
   }
-}
 
-export function castle({ pieces, x, y }) {
-  const piece = pieces[y][x];
-  if (piece.color === WHITE) {
-    if (x === 6) {
-      const newRook = pieces[7][7];
-      newRook.hasMoved = true;
-      pieces[7][5] = newRook;
-      pieces[7][7] = createEmpty();
-    } else if (x === 2) {
-      const newRook = pieces[7][0];
-      newRook.hasMoved = true;
-      pieces[7][3] = newRook;
-      pieces[7][0] = createEmpty();
-    }
-  } else if (piece.color === BLACK) {
-    if (x === 2) {
-      const newRook = pieces[0][0];
-      newRook.hasMoved = true;
-      pieces[0][3] = newRook;
-      pieces[0][0] = createEmpty();
-    } else if (x === 6) {
-      const newRook = pieces[0][7];
-      newRook.hasMoved = true;
-      pieces[0][5] = newRook;
-      pieces[0][7] = createEmpty();
+  if (takenId) {
+    if (game.turn === WHITE) {
+      game.blackTaken[takenId] = (game.blackTaken[takenId] || 0) + 1;
+    } else {
+      game.whiteTaken[takenId] = (game.whiteTaken[takenId] || 0) + 1;
     }
   }
+
+  return game;
 }
 
-export function createEmptyBoard() {
-  return Array.from({ length: BOARD_SIZE }, () =>
-    Array.from({ length: BOARD_SIZE }, () => createEmpty()),
-  );
+export function createGame(initialHistory = []) {
+  const game = {
+    history: createHistory(initialHistory),
+    pieces: createPieces(),
+    whiteTaken: {},
+    blackTaken: {},
+    turn: WHITE,
+  };
+
+  for (let i = 0; i < initialHistory.length; i++) {
+    redo(game);
+  }
+
+  return game;
 }
