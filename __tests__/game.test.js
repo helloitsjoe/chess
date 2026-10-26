@@ -311,7 +311,6 @@ describe('undo/redo', () => {
     game = createGame(CASTLE_SETUP);
     expectCastlingSetup(game);
 
-    // FIXME: Long castling (and undo) is broken
     move('e1', 'c1');
     expectLongCastleWhite(game);
 
@@ -322,12 +321,12 @@ describe('undo/redo', () => {
     expectLongCastleWhite(game);
   });
 
-  it.skip('after long castling (black)', () => {
+  it('after long castling (black)', () => {
     game = createGame(CASTLE_SETUP);
     expectCastlingSetup(game);
 
-    // FIXME: Long castling (and undo) is broken
-    move('e1', 'c1');
+    move('a2', 'a3'); // Move white so black can move
+    move('e8', 'c8');
     expectLongCastleBlack(game);
 
     game = undo(game);
