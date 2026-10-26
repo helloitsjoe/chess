@@ -132,7 +132,7 @@ function drawPieces({ pieces }) {
 
         // TODO: Don't replace this click handler on every draw
         pieceEl.onclick = () => {
-          game = update({ game, sq, x, y }, { autoSave, lockCheck });
+          game = update({ game, x, y }, { autoSave, lockCheck });
           draw(game);
         };
       }

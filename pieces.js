@@ -307,7 +307,12 @@ export const createQueen = (color) => ({
   },
 });
 
-export function createPieces() {
+export function createPieces(initialPieces = []) {
+  // TODO: Set initial pieces on an empty board
+  if (initialPieces.length) {
+    //
+  }
+
   return [
     [
       createRook(BLACK),

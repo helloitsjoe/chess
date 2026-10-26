@@ -2,7 +2,7 @@ import { expect, it, describe } from 'vitest';
 import { toNotation, fromNotation, createGame } from '../utils';
 import { createEmptyBoard } from './testUtils';
 import { createBishop, createPieces, createRook } from '../pieces';
-import { BLACK, WHITE } from '../constants';
+import { BLACK, WHITE, Pieces } from '../constants';
 import { createHistory } from '../history';
 
 describe('createGame', () => {
@@ -25,6 +25,11 @@ describe('createGame', () => {
     expect(game.whiteTaken).toEqual({});
     expect(game.blackTaken).toEqual({ P: 1 });
     expect(game.turn).toEqual(WHITE);
+  });
+
+  it('gets piece from coords', () => {
+    const game = createGame();
+    expect(game.get('a1').id).toEqual(Pieces.ROOK);
   });
 });
 

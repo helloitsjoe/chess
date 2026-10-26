@@ -1,6 +1,12 @@
 import { expect, it, describe } from 'vitest';
-import { BOARD_SIZE } from './constants.js';
-import { createEmpty } from './pieces.js';
+import { BOARD_SIZE } from '../constants.js';
+import { createEmpty } from '../pieces.js';
+import { getFile, getRank } from '../utils.js';
+
+export function c(sq) {
+  const [file, rank] = sq.split('');
+  return { x: getFile(file), y: getRank(rank) };
+}
 
 // Check equal arrays in any order
 export function expectArraysEqual(arr1, arr2) {
@@ -14,6 +20,12 @@ export function createEmptyBoard() {
     Array.from({ length: BOARD_SIZE }, () => createEmpty()),
   );
 }
+
+describe('click', () => {
+  it('converts input to x/y coords', () => {
+    expect(c('a1')).toEqual({ x: 0, y: 7 });
+  });
+});
 
 describe('expectArraysEqual', () => {
   describe('should pass', () => {

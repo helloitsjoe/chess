@@ -7,9 +7,8 @@ const { EMPTY } = Pieces;
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
 const FILES = 'abcdefgh';
-const getRank = (y) => BOARD_SIZE - y;
-const getRow = (num) => BOARD_SIZE - Number(num);
-const getCol = (letter) => FILES.indexOf(letter);
+export const getRank = (y) => BOARD_SIZE - y;
+export const getFile = (letter) => FILES.indexOf(letter);
 
 export function save(game) {
   localStorage.setItem('chess-history', game.history.toString());
@@ -55,11 +54,11 @@ export function fromNotation(notation) {
     /([A-Z])([a-h][1-8])x?([A-Z])?([a-h][1-8])(ep)?([a-z][1-8])?/;
   const [, id, from, takenId = '', to, , ep] = notation.match(notationRegex);
 
-  const fromSq = { x: getCol(from[0]), y: getRow(from[1]) };
-  const toSq = { x: getCol(to[0]), y: getRow(to[1]) };
+  const fromSq = { x: getFile(from[0]), y: getRank(from[1]) };
+  const toSq = { x: getFile(to[0]), y: getRank(to[1]) };
 
   if (ep) {
-    const enPassant = { x: getCol(ep[0]), y: getRow(ep[1]) };
+    const enPassant = { x: getFile(ep[0]), y: getRank(ep[1]) };
     return { id, fromSq, takenId: Pieces.PAWN, toSq, enPassant };
   }
 
@@ -98,11 +97,8 @@ export function undo(game) {
   console.log(' takenId', takenId);
 
   if (takenId) {
-    if (game.turn === BLACK) {
-      game.blackTaken[takenId]--;
-    } else {
-      game.whiteTaken[takenId]--;
-    }
+    const takenMap = game.turn === WHITE ? game.whiteTaken : game.blackTaken;
+    takenMap[takenId]--;
   }
 
   return game;
@@ -134,23 +130,26 @@ export function redo(game) {
   }
 
   if (takenId) {
-    if (game.turn === WHITE) {
-      game.blackTaken[takenId] = (game.blackTaken[takenId] || 0) + 1;
-    } else {
-      game.whiteTaken[takenId] = (game.whiteTaken[takenId] || 0) + 1;
-    }
+    const takenMap = game.turn === BLACK ? game.whiteTaken : game.blackTaken;
+    takenMap[takenId] = (takenMap[takenId] || 0) + 1;
   }
 
   return game;
 }
 
-export function createGame(initialHistory = []) {
+export function createGame(initialHistory = [], initialPieces = []) {
+  const pieces = createPieces(initialPieces);
+
   const game = {
     history: createHistory(initialHistory),
-    pieces: createPieces(),
+    pieces,
     whiteTaken: {},
     blackTaken: {},
     turn: WHITE,
+    get: (coord) => {
+      const [file, rank] = coord.split('');
+      return pieces[getRank(rank)][getFile(file)];
+    },
   };
 
   for (let i = 0; i < initialHistory.length; i++) {

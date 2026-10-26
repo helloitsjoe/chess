@@ -3,21 +3,26 @@ import { putsSelfInCheck, getIsCheck, promote, castle } from './special.js';
 import {
   isEmpty,
   toNotation,
-  undo,
   save,
   clearPending,
   clearEnPassantable,
 } from './utils.js';
 import { createEmpty } from './pieces.js';
 
-export function update({ game, sq, x, y }, userOptions) {
-  const { autoSave, lockCheck } = userOptions;
+export function update({ game, x, y }, userOptions = {}) {
+  const { autoSave, lockCheck = true } = userOptions;
   const { pieces, whiteTaken, blackTaken, turn, history } = game;
+  const sq = pieces[y][x];
+
   if (sq.pendingMove) {
     // Move piece
     const { x: oldX, y: oldY, type } = sq.pendingMove;
     const oldPiece = pieces[oldY][oldX];
     const newPiece = type === Type.PROMOTE ? promote(oldPiece.color) : oldPiece;
+
+    if (lockCheck && type === Type.SELF_CHECK) {
+      return game;
+    }
 
     // TODO: Move this into getMoves?
     let pieceToTake = pieces[y][x];
@@ -33,9 +38,8 @@ export function update({ game, sq, x, y }, userOptions) {
       enPassant = { x: oldX + 1, y: oldY };
     }
 
-    const takenMap = pieceToTake.color === BLACK ? whiteTaken : blackTaken;
-
     if (!isEmpty(pieceToTake)) {
+      const takenMap = pieceToTake.color === BLACK ? whiteTaken : blackTaken;
       takenMap[pieceToTake.id] = (takenMap[pieceToTake.id] || 0) + 1;
     }
 
@@ -67,10 +71,6 @@ export function update({ game, sq, x, y }, userOptions) {
 
     if (type === Type.CASTLE) {
       castle({ pieces, x, y });
-    }
-
-    if (lockCheck && type === Type.SELF_CHECK) {
-      undo(game);
     }
 
     game.turn = game.turn === WHITE ? BLACK : WHITE;
