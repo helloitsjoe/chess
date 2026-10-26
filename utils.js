@@ -94,8 +94,6 @@ export function undo(game) {
     castle({ pieces: game.pieces, x: fromSq.x, y: fromSq.y });
   }
 
-  console.log(' takenId', takenId);
-
   if (takenId) {
     const takenMap = game.turn === WHITE ? game.whiteTaken : game.blackTaken;
     takenMap[takenId]--;

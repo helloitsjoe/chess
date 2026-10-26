@@ -101,21 +101,29 @@ export function promote(color) {
 export function castle({ pieces, x, y }) {
   const undo = x === 4;
   const piece = pieces[y][x];
-  const kingXShort = undo ? 4 : 6;
-  const kingXLong = undo ? 4 : 2;
-  const rookXShort = undo ? 7 : 5;
-  const rookXLong = undo ? 0 : 3;
-  const emptyX = undo ? 5 : 7;
+  const kingXShort = 6;
+  const kingXLong = 2;
+  const emptyKing = undo ? 5 : 4; // This should account for long too?
 
   const newRook = createRook(piece.color);
   newRook.hasMoved = !undo;
 
-  if (x === kingXShort) {
-    pieces[y][rookXShort] = newRook;
-  } else if (x === kingXLong) {
-    pieces[y][rookXLong] = newRook;
+  // TODO: Clean this up
+  const undoShort = pieces[y][5].id === ROOK;
+  const undoLong = pieces[y][3].id === ROOK;
+
+  if (x === kingXShort || undoShort) {
+    const rookX = undo ? 7 : 5;
+    const emptyRook = undo ? 5 : 7;
+    pieces[y][rookX] = newRook;
+    pieces[y][emptyRook] = createEmpty();
+  } else if (x === kingXLong || undoLong) {
+    const rookX = undo ? 0 : 3;
+    const emptyRook = undo ? 3 : 0;
+    pieces[y][rookX] = newRook;
+    pieces[y][emptyRook] = createEmpty();
   }
-  pieces[y][emptyX] = createEmpty();
+  pieces[y][emptyKing] = createEmpty();
 }
 
 export function enPassant() {

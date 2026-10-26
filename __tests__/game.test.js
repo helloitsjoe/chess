@@ -4,7 +4,12 @@ import { createGame, undo, redo } from '../utils.js';
 import { Pieces, WHITE, BLACK } from '../constants.js';
 import { c } from './testUtils.js';
 
-const { PAWN, EMPTY, BISHOP } = Pieces;
+const { PAWN, EMPTY, BISHOP, KING, ROOK } = Pieces;
+
+const CASTLE_SETUP =
+  'Pg2g4|Pg7g5|Bf1h3|Bf8h6|Ng1f3|Ng8f6|Pb2b3|Pb7b6|Bc1b2|Bc8b7|Nb1c3|Nb8c6|Pe2e4|Pe7e5|Qd1e2|Qd8e7'.split(
+    '|',
+  );
 
 let game;
 
@@ -15,6 +20,76 @@ beforeEach(() => {
 function move(from, to) {
   game = update({ game, ...c(from) });
   game = update({ game, ...c(to) });
+}
+
+function expectCastlingSetup(game) {
+  expect(game.pieces[7].map((p) => p.id).join('')).toBe('REEEKEER');
+  expect(game.get('a1')).toMatchObject({ id: ROOK, color: WHITE });
+  expect(game.get('b1')).toMatchObject({ id: EMPTY });
+  expect(game.get('c1')).toMatchObject({ id: EMPTY });
+  expect(game.get('d1')).toMatchObject({ id: EMPTY });
+  expect(game.get('e1')).toMatchObject({ id: KING, color: WHITE });
+  expect(game.get('f1')).toMatchObject({ id: EMPTY });
+  expect(game.get('g1')).toMatchObject({ id: EMPTY });
+  expect(game.get('h1')).toMatchObject({ id: ROOK, color: WHITE });
+
+  expect(game.pieces[0].map((p) => p.id).join('')).toBe('REEEKEER');
+  expect(game.get('a8')).toMatchObject({ id: ROOK, color: BLACK });
+  expect(game.get('b8')).toMatchObject({ id: EMPTY });
+  expect(game.get('c8')).toMatchObject({ id: EMPTY });
+  expect(game.get('d8')).toMatchObject({ id: EMPTY });
+  expect(game.get('e8')).toMatchObject({ id: KING, color: BLACK });
+  expect(game.get('f8')).toMatchObject({ id: EMPTY });
+  expect(game.get('g8')).toMatchObject({ id: EMPTY });
+  expect(game.get('h8')).toMatchObject({ id: ROOK, color: BLACK });
+}
+
+function expectShortCastleWhite(game) {
+  expect(game.pieces[7].map((p) => p.id).join('')).toBe('REEEERKE');
+  expect(game.get('a1')).toMatchObject({ id: ROOK, color: WHITE });
+  expect(game.get('b1')).toMatchObject({ id: EMPTY });
+  expect(game.get('c1')).toMatchObject({ id: EMPTY });
+  expect(game.get('d1')).toMatchObject({ id: EMPTY });
+  expect(game.get('e1')).toMatchObject({ id: EMPTY });
+  expect(game.get('f1')).toMatchObject({ id: ROOK, color: WHITE });
+  expect(game.get('g1')).toMatchObject({ id: KING, color: WHITE });
+  expect(game.get('h1')).toMatchObject({ id: EMPTY });
+}
+
+function expectShortCastleBlack(game) {
+  expect(game.pieces[0].map((p) => p.id).join('')).toBe('REEEERKE');
+  expect(game.get('a8')).toMatchObject({ id: ROOK, color: BLACK });
+  expect(game.get('b8')).toMatchObject({ id: EMPTY });
+  expect(game.get('c8')).toMatchObject({ id: EMPTY });
+  expect(game.get('d8')).toMatchObject({ id: EMPTY });
+  expect(game.get('e8')).toMatchObject({ id: EMPTY });
+  expect(game.get('f8')).toMatchObject({ id: ROOK, color: BLACK });
+  expect(game.get('g8')).toMatchObject({ id: KING, color: BLACK });
+  expect(game.get('h8')).toMatchObject({ id: EMPTY });
+}
+
+function expectLongCastleWhite(game) {
+  expect(game.pieces[7].map((p) => p.id).join('')).toBe('EEKREEER');
+  expect(game.get('a1')).toMatchObject({ id: EMPTY });
+  expect(game.get('b1')).toMatchObject({ id: EMPTY });
+  expect(game.get('c1')).toMatchObject({ id: KING, color: WHITE });
+  expect(game.get('d1')).toMatchObject({ id: ROOK, color: WHITE });
+  expect(game.get('e1')).toMatchObject({ id: EMPTY });
+  expect(game.get('f1')).toMatchObject({ id: EMPTY });
+  expect(game.get('g1')).toMatchObject({ id: EMPTY });
+  expect(game.get('h1')).toMatchObject({ id: ROOK, color: WHITE });
+}
+
+function expectLongCastleBlack(game) {
+  expect(game.pieces[0].map((p) => p.id).join('')).toBe('EEKREEER');
+  expect(game.get('a8')).toMatchObject({ id: EMPTY });
+  expect(game.get('b8')).toMatchObject({ id: EMPTY });
+  expect(game.get('c8')).toMatchObject({ id: KING, color: BLACK });
+  expect(game.get('d8')).toMatchObject({ id: ROOK, color: BLACK });
+  expect(game.get('e8')).toMatchObject({ id: EMPTY });
+  expect(game.get('f8')).toMatchObject({ id: EMPTY });
+  expect(game.get('g8')).toMatchObject({ id: EMPTY });
+  expect(game.get('h8')).toMatchObject({ id: ROOK, color: BLACK });
 }
 
 describe('update', () => {
@@ -203,10 +278,65 @@ describe('undo/redo', () => {
     expect(game.blackTaken).toEqual({ [PAWN]: 1 });
   });
 
-  it.todo('after en passant (white)'); // Should allow en passant after redo (reset movedTwo)
+  it('after short castling (white)', () => {
+    game = createGame(CASTLE_SETUP);
+    expectCastlingSetup(game);
+
+    move('e1', 'g1');
+    expectShortCastleWhite(game);
+
+    game = undo(game);
+    expectCastlingSetup(game);
+
+    game = redo(game);
+    expectShortCastleWhite(game);
+  });
+
+  it('after short castling (black)', () => {
+    game = createGame(CASTLE_SETUP);
+    expectCastlingSetup(game);
+
+    move('a2', 'a3'); // Move white so black can move
+    move('e8', 'g8');
+    expectShortCastleBlack(game);
+
+    game = undo(game);
+    expectCastlingSetup(game);
+
+    game = redo(game);
+    expectShortCastleBlack(game);
+  });
+
+  it('after long castling (white)', () => {
+    game = createGame(CASTLE_SETUP);
+    expectCastlingSetup(game);
+
+    // FIXME: Long castling (and undo) is broken
+    move('e1', 'c1');
+    expectLongCastleWhite(game);
+
+    game = undo(game);
+    expectCastlingSetup(game);
+
+    game = redo(game);
+    expectLongCastleWhite(game);
+  });
+
+  it.skip('after long castling (black)', () => {
+    game = createGame(CASTLE_SETUP);
+    expectCastlingSetup(game);
+
+    // FIXME: Long castling (and undo) is broken
+    move('e1', 'c1');
+    expectLongCastleBlack(game);
+
+    game = undo(game);
+    expectCastlingSetup(game);
+
+    game = redo(game);
+    expectLongCastleBlack(game);
+  });
+
+  it('after en passant (white)'); // Should allow en passant after redo (reset movedTwo)
   it.todo('after en passant (black)');
-  it.todo('after short castling (white)');
-  it.todo('after long castling (white)');
-  it.todo('after short castling (black)');
-  it.todo('after long castling (black)');
 });
