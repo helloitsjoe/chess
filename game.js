@@ -29,7 +29,7 @@ export function update({ game, x, y }, userOptions = {}) {
     let enPassant = null;
 
     // TODO: White taking en passant + undo is buggy, puts black pawn back 2 squares further down than it should
-    // TODO: Also, movedTwo needs to reset when undoing
+    // TODO: Also, movedTwo needs to reset when undoing/redoing
     if (pieces[oldY][oldX - 1]?.movedTwo) {
       pieceToTake = pieces[oldY][oldX - 1];
       enPassant = { x: oldX - 1, y: oldY };

@@ -1,23 +1,23 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { update } from '../game.js';
-import { createGame } from '../utils.js';
+import { createGame, undo, redo } from '../utils.js';
 import { Pieces, WHITE, BLACK } from '../constants.js';
 import { c } from './testUtils.js';
 
 const { PAWN, EMPTY, BISHOP } = Pieces;
 
+let game;
+
+beforeEach(() => {
+  game = createGame();
+});
+
+function move(from, to) {
+  game = update({ game, ...c(from) });
+  game = update({ game, ...c(to) });
+}
+
 describe('update', () => {
-  let game;
-
-  beforeEach(() => {
-    game = createGame();
-  });
-
-  function move(from, to) {
-    game = update({ game, ...c(from) });
-    game = update({ game, ...c(to) });
-  }
-
   it('moves pieces', () => {
     expect(game.get('d4').id).toBe(EMPTY);
     expect(game.get('d2').id).toBe(PAWN);
@@ -126,7 +126,83 @@ describe('update', () => {
 });
 
 describe('undo/redo', () => {
-  it.todo('allows undo/redo', () => {});
+  it('allows undo/redo', () => {
+    move('e2', 'e4');
+    move('d7', 'd5');
+
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: BLACK });
+
+    game = undo(game);
+    game = undo(game);
+
+    // Pieces are back to start
+    expect(game.get('e4')).toMatchObject({ id: EMPTY });
+    expect(game.get('d5')).toMatchObject({ id: EMPTY });
+    expect(game.get('e2')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('d7')).toMatchObject({ id: PAWN, color: BLACK });
+
+    game = redo(game);
+    game = redo(game);
+
+    // Pieces are back where they were
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.get('e2')).toMatchObject({ id: EMPTY });
+    expect(game.get('d7')).toMatchObject({ id: EMPTY });
+  });
+
+  it('after white takes', () => {
+    move('e2', 'e4');
+    move('d7', 'd5');
+    // Take
+    move('e4', 'd5');
+    expect(game.get('e4')).toMatchObject({ id: EMPTY });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.blackTaken).toEqual({});
+    expect(game.whiteTaken).toEqual({ [PAWN]: 1 });
+
+    game = undo(game);
+    // Pawns and maps are back
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.blackTaken).toEqual({});
+    expect(game.whiteTaken).toEqual({});
+
+    game = redo(game);
+    // Pawns and maps retake
+    expect(game.get('e4')).toMatchObject({ id: EMPTY });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.blackTaken).toEqual({});
+    expect(game.whiteTaken).toEqual({ [PAWN]: 1 });
+  });
+
+  it('after black takes', () => {
+    move('e2', 'e4');
+    move('d7', 'd5');
+    move('a2', 'a3');
+
+    // Black takes
+    move('d5', 'e4');
+    expect(game.get('d5')).toMatchObject({ id: EMPTY });
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.whiteTaken).toEqual({});
+    expect(game.blackTaken).toEqual({ [PAWN]: 1 });
+
+    game = undo(game);
+    // Pawns and maks are back
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('d5')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.blackTaken).toEqual({});
+    expect(game.whiteTaken).toEqual({});
+
+    game = redo(game);
+    expect(game.get('d5')).toMatchObject({ id: EMPTY });
+    expect(game.get('e4')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.whiteTaken).toEqual({});
+    expect(game.blackTaken).toEqual({ [PAWN]: 1 });
+  });
+
   it.todo('after en passant (white)'); // Should allow en passant after redo (reset movedTwo)
   it.todo('after en passant (black)');
   it.todo('after short castling (white)');

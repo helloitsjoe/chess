@@ -99,6 +99,9 @@ export function undo(game) {
   if (takenId) {
     const takenMap = game.turn === WHITE ? game.whiteTaken : game.blackTaken;
     takenMap[takenId]--;
+    if (takenMap[takenId] === 0) {
+      delete takenMap[takenId];
+    }
   }
 
   return game;
