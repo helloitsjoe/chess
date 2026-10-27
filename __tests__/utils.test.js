@@ -1,7 +1,7 @@
 import { expect, it, describe } from 'vitest';
 import { toNotation, fromNotation, createGame } from '../utils';
 import { createEmptyBoard } from './testUtils';
-import { createBishop, createPieces, createRook } from '../pieces';
+import { createPawn, createBishop, createPieces, createRook } from '../pieces';
 import { BLACK, WHITE, Pieces } from '../constants';
 import { createHistory } from '../history';
 
@@ -50,6 +50,16 @@ describe('toNotation', () => {
     const moveTo = { x: 0, y: 3 };
     const notation = toNotation(pieces, moveFrom, moveTo);
     expect(notation).toBe('Ra8xBa5');
+  });
+
+  it('en passant', () => {
+    const pieces = createEmptyBoard();
+    pieces[3][0] = createPawn(WHITE);
+    pieces[3][1] = createPawn(BLACK, { movedTwo: true });
+    const moveFrom = { x: 0, y: 3 };
+    const moveTo = { x: 1, y: 2 };
+    const notation = toNotation(pieces, moveFrom, moveTo, { x: 1, y: 3 });
+    expect(notation).toBe('Pa5xPb6epb5');
   });
 });
 

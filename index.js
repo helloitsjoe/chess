@@ -11,9 +11,7 @@ import { save, undo, redo, createGame } from './utils.js';
 import { sprites } from './sprites.js';
 
 // TODO:
-// Check for checkmate
 // Check for stalemate
-// En passant
 // Drag-n-drop
 
 window.addEventListener('keydown', (e) => {

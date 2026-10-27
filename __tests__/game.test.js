@@ -386,17 +386,16 @@ describe('undo/redo', () => {
     expect(game.get('d4')).toMatchObject({ id: PAWN, color: WHITE });
     expect(game.blackTaken).toEqual({});
 
-    // FIXME
-    // // Undo should reset en passant rights and let user take
-    // move('c4', 'b3');
-    // expect(game.get('b3')).toMatchObject({ id: PAWN, color: BLACK });
-    // expect(game.get('b4')).toMatchObject({ id: EMPTY });
-    // expect(game.blackTaken).toEqual({ [PAWN]: 1 });
+    // Undo should reset en passant rights and let user take
+    move('c4', 'b3');
+    expect(game.get('b3')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.get('b4')).toMatchObject({ id: EMPTY });
+    expect(game.blackTaken).toEqual({ [PAWN]: 1 });
 
-    // game = undo(game);
-    // expect(game.get('c4')).toMatchObject({ id: PAWN, color: BLACK });
-    // expect(game.get('d4')).toMatchObject({ id: PAWN, color: WHITE });
-    // expect(game.blackTaken).toEqual({});
+    game = undo(game);
+    expect(game.get('c4')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.get('d4')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.blackTaken).toEqual({});
 
     game = redo(game);
     expect(game.get('b3')).toMatchObject({ id: PAWN, color: BLACK });
@@ -418,22 +417,20 @@ describe('undo/redo', () => {
     expect(game.whiteTaken).toEqual({ [PAWN]: 1 });
 
     game = undo(game);
-    // FIXME: black reappears on g3??
-    // expect(game.get('g5')).toMatchObject({ id: PAWN, color: BLACK });
-    // expect(game.get('f5')).toMatchObject({ id: PAWN, color: WHITE });
-    // expect(game.whiteTaken).toEqual({});
+    expect(game.get('g5')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.get('f5')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.whiteTaken).toEqual({});
 
-    // FIXME
-    // // Undo should reset en passant rights and let user take
-    // move('c4', 'b3');
-    // expect(game.get('b3')).toMatchObject({ id: PAWN, color: BLACK });
-    // expect(game.get('b4')).toMatchObject({ id: EMPTY });
-    // expect(game.blackTaken).toEqual({ [PAWN]: 1 });
+    // Undo should reset en passant rights and let user take
+    move('f5', 'g6');
+    expect(game.get('g6')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.get('g5')).toMatchObject({ id: EMPTY });
+    expect(game.whiteTaken).toEqual({ [PAWN]: 1 });
 
-    // game = undo(game);
-    // expect(game.get('c4')).toMatchObject({ id: PAWN, color: BLACK });
-    // expect(game.get('d4')).toMatchObject({ id: PAWN, color: WHITE });
-    // expect(game.blackTaken).toEqual({});
+    game = undo(game);
+    expect(game.get('g5')).toMatchObject({ id: PAWN, color: BLACK });
+    expect(game.get('f5')).toMatchObject({ id: PAWN, color: WHITE });
+    expect(game.whiteTaken).toEqual({});
 
     game = redo(game);
     expect(game.get('g6')).toMatchObject({ id: PAWN, color: WHITE });

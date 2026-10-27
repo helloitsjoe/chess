@@ -7,7 +7,7 @@ const { EMPTY } = Pieces;
 export const isEmpty = (piece) => piece?.id === EMPTY;
 
 const FILES = 'abcdefgh';
-export const getRank = (y) => BOARD_SIZE - y;
+export const getRank = (y) => BOARD_SIZE - Number(y);
 export const getFile = (letter) => FILES.indexOf(letter);
 
 export function save(game) {
@@ -20,9 +20,29 @@ export function toNotation(pieces, moveFrom, moveTo, enPassant) {
   const toRank = getRank(moveTo.y);
   const toFile = FILES[moveTo.x];
   const piece = pieces[moveFrom.y][moveFrom.x];
-  const taken = pieces[moveTo.y][moveTo.x];
+  const taken = pieces[(enPassant ?? moveTo).y][(enPassant ?? moveTo).x];
 
-  return `${piece.id}${fromFile}${fromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${toFile}${toRank}${enPassant ? 'ep' + toFile + enPassant.y : ''}`;
+  return `${piece.id}${fromFile}${fromRank}${!isEmpty(taken) ? 'x' + taken.id : ''}${toFile}${toRank}${enPassant ? 'ep' + toFile + getRank(enPassant.y) : ''}`;
+}
+
+export function fromNotation(notation) {
+  // Regex to parse notation. For example 'Pb7b6' would be: ['P', 'b7', 'b6']
+  // Taking: 'Ra8xBa5' would be: [R, a8, x, B, a5]
+  // En passant: 'Pa5xPb6epb5' would be: [P, a5, x, P, b6, ep, b5]
+  const notationRegex =
+    /([A-Z])([a-h][1-8])x?([A-Z])?([a-h][1-8])(ep)?([a-z][1-8])?/;
+  const [, id, from, takenId = '', to, , ep] = notation.match(notationRegex);
+
+  const fromSq = { x: getFile(from[0]), y: getRank(from[1]) };
+  const toSq = { x: getFile(to[0]), y: getRank(to[1]) };
+
+  return {
+    id,
+    fromSq,
+    takenId,
+    toSq,
+    enPassant: ep ? { x: getFile(ep[0]), y: getRank(ep[1]) } : undefined,
+  };
 }
 
 export function clearPending(pieces) {
@@ -47,24 +67,6 @@ export function clearEnPassantable(pieces, turn) {
   }
 }
 
-export function fromNotation(notation) {
-  // Regex to parse notation. For example 'Pb7b6' would be: ['P', 'b7', 'b6']
-  // and 'Ra8xBa5' would be: [R, a8, x, B, a5]
-  const notationRegex =
-    /([A-Z])([a-h][1-8])x?([A-Z])?([a-h][1-8])(ep)?([a-z][1-8])?/;
-  const [, id, from, takenId = '', to, , ep] = notation.match(notationRegex);
-
-  const fromSq = { x: getFile(from[0]), y: getRank(from[1]) };
-  const toSq = { x: getFile(to[0]), y: getRank(to[1]) };
-
-  if (ep) {
-    const enPassant = { x: getFile(ep[0]), y: getRank(ep[1]) };
-    return { id, fromSq, takenId: Pieces.PAWN, toSq, enPassant };
-  }
-
-  return { id, fromSq, takenId, toSq };
-}
-
 export function undo(game) {
   clearPending(game.pieces);
   const previous = game.history.undo();
@@ -76,18 +78,16 @@ export function undo(game) {
 
   const createPiece = factoryMap[id];
   const recreateTakenOrEmpty = factoryMap[takenId || Pieces.EMPTY];
+  const takenColor = game.turn === WHITE ? BLACK : WHITE;
 
   game.pieces[fromSq.y][fromSq.x] = createPiece(game.turn);
 
   if (enPassant) {
-    game.pieces[enPassant.y][enPassant.x] = createPawn(
-      game.turn === WHITE ? BLACK : WHITE,
-    );
+    const pawn = createPawn(takenColor, { movedTwo: true });
+    game.pieces[enPassant.y][enPassant.x] = pawn;
     game.pieces[toSq.y][toSq.x] = createEmpty();
   } else {
-    game.pieces[toSq.y][toSq.x] = recreateTakenOrEmpty(
-      game.turn === WHITE ? BLACK : WHITE,
-    );
+    game.pieces[toSq.y][toSq.x] = recreateTakenOrEmpty(takenColor);
   }
 
   if (id === Pieces.KING && Math.abs(fromSq.x - toSq.x) > 1) {
