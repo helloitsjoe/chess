@@ -1,5 +1,11 @@
 import { expect, it, describe } from 'vitest';
-import { toNotation, fromNotation, createGame } from '../utils';
+import {
+  toAlg,
+  toCoords,
+  toNotation,
+  fromNotation,
+  createGame,
+} from '../utils';
 import { createEmptyBoard } from './testUtils';
 import { createPawn, createBishop, createPieces, createRook } from '../pieces';
 import { BLACK, WHITE, Pieces } from '../constants';
@@ -80,6 +86,39 @@ describe('fromNotation', () => {
       id: 'R',
       takenId: 'B',
     });
+  });
+});
+
+describe('toAlg/toCoords', () => {
+  it.each([
+    [{ x: 0, y: 0 }, 'a8'],
+    [{ x: 1, y: 1 }, 'b7'],
+    [{ x: 7, y: 0 }, 'h8'],
+    [{ x: 7, y: 7 }, 'h1'],
+    [{ x: 0, y: 7 }, 'a1'],
+  ])('Happy path: %s -> %s', ({ x, y }, alg) => {
+    expect(toAlg(x, y)).toBe(alg);
+    expect(toCoords(alg)).toEqual({ x, y });
+  });
+
+  it.each([
+    [{ x: undefined, y: 1 }, undefined],
+    [{ x: 30000, y: 1 }, undefined],
+    [{ x: -1, y: 10 }, undefined],
+  ])('Edge cases: %s -> %s', ({ x, y }, alg) => {
+    expect(toAlg(x, y)).toBe(alg);
+  });
+
+  it.each([
+    [null, undefined],
+    [undefined, undefined],
+    ['x7', undefined],
+    ['zzzzz', undefined],
+    [9, undefined],
+    [0, undefined],
+    ['joe', undefined],
+  ])('Edge cases: %s -> %s', (input, expected) => {
+    expect(toCoords(input)).toBe(expected);
   });
 });
 

@@ -5,10 +5,19 @@ import { createPieces, createPawn, createEmpty } from './pieces.js';
 const { EMPTY } = Pieces;
 
 export const isEmpty = (piece) => piece?.id === EMPTY;
+export const onBoard = (x) => x != null && 0 <= x && x < BOARD_SIZE;
 
 const FILES = 'abcdefgh';
 export const getRank = (y) => BOARD_SIZE - Number(y);
 export const getFile = (letter) => FILES.indexOf(letter);
+
+export const toAlg = (x, y) =>
+  onBoard(x) && onBoard(y) ? `${FILES[x]}${getRank(y)}` : undefined;
+
+export const toCoords = (alg) =>
+  typeof alg === 'string' && /[a-h][1-8]/.test(alg)
+    ? { x: getFile(alg[0]), y: getRank(alg[1]) }
+    : undefined;
 
 export function save(game) {
   localStorage.setItem('chess-history', game.history.toString());
@@ -148,8 +157,13 @@ export function createGame(initialHistory = [], initialPieces = []) {
     blackTaken: {},
     turn: WHITE,
     get: (coord) => {
+      if (!coord) return undefined;
       const [file, rank] = coord.split('');
       return pieces[getRank(rank)][getFile(file)];
+    },
+    set: (pos, piece) => {
+      const [file, rank] = pos.split('');
+      pieces[getRank(rank)][getFile(file)] = piece;
     },
   };
 

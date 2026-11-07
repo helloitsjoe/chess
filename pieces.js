@@ -3,7 +3,6 @@ import { BLACK, BOARD_SIZE, WHITE, Type, Pieces } from './constants.js';
 
 const { EMPTY, KING, QUEEN, ROOK, PAWN, KNIGHT, BISHOP } = Pieces;
 
-// TODO: Check for check/checkmate before allowing move
 function makeGetRookMoves(color) {
   return ({ pieces, x, y }) => {
     const moves = [];
