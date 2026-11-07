@@ -70,7 +70,7 @@ export function clearEnPassantable(pieces, turn) {
 export function undo(game) {
   clearPending(game.pieces);
   const previous = game.history.undo();
-  if (!previous) return;
+  if (!previous) return game;
 
   game.turn = game.turn === WHITE ? BLACK : WHITE;
 
@@ -108,7 +108,7 @@ export function undo(game) {
 export function redo(game) {
   clearPending(game.pieces);
   const next = game.history.redo();
-  if (!next) return;
+  if (!next) return game;
 
   game.turn = game.turn === WHITE ? BLACK : WHITE;
 

@@ -1,5 +1,5 @@
 import { expect, it, describe } from 'vitest';
-import { toNotation, fromNotation, createGame } from '../utils';
+import { toNotation, fromNotation, createGame, undo, redo } from '../utils';
 import { createEmptyBoard } from './testUtils';
 import { createPawn, createBishop, createPieces, createRook } from '../pieces';
 import { BLACK, WHITE, Pieces } from '../constants';
@@ -84,10 +84,64 @@ describe('fromNotation', () => {
 });
 
 describe('undo/redo', () => {
-  it.todo('undo move');
+  it('undo move', () => {
+    const HISTORY = ['Pb2b4', 'Pe7e6'];
+    let game = createGame(HISTORY);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.EMPTY);
+    expect(game.get('e6').id).toBe(Pieces.PAWN);
+
+    game = undo(game);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.PAWN);
+    expect(game.get('e6').id).toBe(Pieces.EMPTY);
+
+    game = undo(game);
+    expect(game.get('b2').id).toBe(Pieces.PAWN);
+    expect(game.get('b4').id).toBe(Pieces.EMPTY);
+    expect(game.get('e7').id).toBe(Pieces.PAWN);
+    expect(game.get('e6').id).toBe(Pieces.EMPTY);
+
+    // Should not undo past beginning
+    game = undo(game);
+    expect(game.get('b2').id).toBe(Pieces.PAWN);
+    expect(game.get('b4').id).toBe(Pieces.EMPTY);
+    expect(game.get('e7').id).toBe(Pieces.PAWN);
+    expect(game.get('e6').id).toBe(Pieces.EMPTY);
+  });
+
   it.todo('undo taken');
   it.todo('undo castle');
-  it.todo('redo move');
+
+  it('redo move', () => {
+    const HISTORY = ['Pb2b4', 'Pe7e6'];
+    let game = createGame(HISTORY);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.EMPTY);
+    expect(game.get('e6').id).toBe(Pieces.PAWN);
+
+    game = undo(game);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.PAWN);
+    expect(game.get('e6').id).toBe(Pieces.EMPTY);
+
+    game = redo(game);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.EMPTY);
+    expect(game.get('e6').id).toBe(Pieces.PAWN);
+
+    game = redo(game);
+    expect(game.get('b2').id).toBe(Pieces.EMPTY);
+    expect(game.get('b4').id).toBe(Pieces.PAWN);
+    expect(game.get('e7').id).toBe(Pieces.EMPTY);
+    expect(game.get('e6').id).toBe(Pieces.PAWN);
+  });
+
   it.todo('redo taken');
   it.todo('redo castle');
 });
