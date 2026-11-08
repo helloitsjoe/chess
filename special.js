@@ -1,4 +1,4 @@
-import { Pieces } from './constants.js';
+import { Pieces, WHITE, BLACK } from './constants.js';
 import {
   createPawn,
   createRook,
@@ -20,7 +20,7 @@ export const factoryMap = {
   [EMPTY]: createEmpty,
 };
 
-// TODO: Consolidate this with getIsCheck. Can use pendingMove instead of new/old?
+// TODO: Can use pendingMove instead of new/old?
 export function putsSelfInCheck({
   pieces: origPieces,
   turn,
@@ -35,25 +35,9 @@ export function putsSelfInCheck({
   pieces[newY][newX] = movingPiece;
   pieces[oldY][oldX] = createEmpty();
 
-  const allMoves = [];
-  let kingCoords = {};
+  const opponentTurn = turn === WHITE ? BLACK : WHITE;
 
-  for (let y = 0; y < 8; y++) {
-    for (let x = 0; x < 8; x++) {
-      const piece = pieces[y][x];
-      if (piece.id === KING && piece.color === turn) {
-        kingCoords = { x, y };
-      }
-      if (piece.id !== EMPTY && piece.color !== turn) {
-        allMoves.push(...piece.getMoves({ pieces, x, y }));
-      }
-    }
-  }
-
-  const isCheck = allMoves.some(
-    (move) => move.x === kingCoords.x && move.y === kingCoords.y,
-  );
-
+  const { isCheck } = getIsCheck({ pieces, turn: opponentTurn });
   return isCheck;
 }
 
@@ -124,8 +108,4 @@ export function castle({ pieces, x, y }) {
     pieces[y][emptyRook] = createEmpty();
   }
   pieces[y][emptyKing] = createEmpty();
-}
-
-export function enPassant() {
-  //
 }
